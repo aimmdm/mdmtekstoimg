@@ -1,73 +1,114 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mini App TMA Demo</title>
-  <!-- Monetag SDK -->
-  <script src='//libtl.com/sdk.js' data-zone='9256839' data-sdk='show_9256839'></script>
-  <style>
-    body { display:flex; flex-direction:column; font-family: Inter, system-ui; margin:0; background:#000; color:#fff; }
-[data-sticky="header"], [data-sticky="footer"] { padding:16px; background:#111; }
-#app-container { flex:1; padding:16px; display:flex; flex-direction:column; gap:12px; }
-textarea { width:100%; height:100px; padding:8px; border-radius:12px; border:none; resize:none; }
-button { padding:12px; border-radius:12px; border:none; font-weight:500; cursor:pointer; background:#fff; color:#000; }
-button:disabled { opacity:0.5; cursor:not-allowed; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini App TMA Full Demo</title>
+<!-- Monetag SDK -->
+<script src='//libtl.com/sdk.js' data-zone='9256839' data-sdk='show_9256839'></script>
+<style>body { display:flex; flex-direction:column; font-family: Inter, system-ui; margin:0; background:#000; color:#fff; }
+    [data-sticky="header"], [data-sticky="footer"] { padding:16px; background:#111; }
+    #app-container { flex:1; padding:16px; display:flex; flex-direction:column; gap:12px; }
+    textarea { width:100%; height:100px; padding:8px; border-radius:12px; border:none; resize:none; }
+    button { padding:12px; border-radius:12px; border:none; font-weight:500; cursor:pointer; background:#fff; color:#000; }
+    button:disabled { opacity:0.5; cursor:not-allowed; }
+    #preview { background:#222; padding:8px; border-radius:8px; min-height:50px; }
+    </style>
 </head>
 <body>
-  <header data-sticky="header">
-    <h1>Demo SPA TMA</h1>
-    <button id="theme-toggle">Tema</button>
-  </header>
+<header data-sticky="header">
+  <h1>Demo SPA TMA</h1>
+  <button id="theme-toggle">Tema</button>
+</header>
 
-  <main id="app-container">
-    <textarea id="input-text" placeholder="Ketik teks di sini..."></textarea>
-    <button id="generate-btn">Generate File</button>
-    <button id="unlock-btn">Buka Fitur (Tonton Iklan)</button>
-  </main>
+<main id="app-container">
+  <textarea id="input-text" placeholder="Ketik teks..."></textarea>
+  <button id="generate-btn" disabled>Buat File</button>
+  <button id="unlock-btn">Buka Fitur (Tonton Iklan)</button>
+  <pre id="preview"></pre>
+</main>
 
-  <footer data-sticky="footer">
-    <p>Demo Footer</p>
-  </footer>
+<footer data-sticky="footer">
+  <p>Demo Footer</p>
+</footer>
 
-  <script>
-    /* PREFLIGHT_OK: TMA_SAFE */
+<script>
+    const IS_TMA = !!window.Telegram?.WebApp;
 
-const IS_TMA = !!window.Telegram?.WebApp;
-
-function showToast(msg) {
-  alert(msg); // minimal demo, bisa diganti toast UI
+function showToast(msg, type="info") {
+  const toast = document.createElement("div");
+  toast.textContent = msg;
+  toast.style.position="fixed";
+  toast.style.bottom="16px";
+  toast.style.left="50%";
+  toast.style.transform="translateX(-50%)";
+  toast.style.background= type==="error" ? "#c00" : "#0c0";
+  toast.style.color="#fff";
+  toast.style.padding="8px 16px";
+  toast.style.borderRadius="12px";
+  toast.style.zIndex="999";
+  document.body.appendChild(toast);
+  setTimeout(()=>toast.remove(),3000);
 }
 
-async function sendFileToBot(blob, filename) {
+// Toolbar unlock logic
+async function unlockToolbar() {
+  document.getElementById("generate-btn").disabled=false;
+  showToast("Fitur dibuka!");
+}
+
+// Minimal Monetag wrapper
+async function withMonetagInApp(label, callback) {
+  return new Promise((res,reject)=>{
+    try {
+      // Panggil Monetag SDK
+      if(window.show_9256839){
+        window.show_9256839(()=>{
+          callback();
+          res();
+        });
+      } else {
+        callback(); // fallback demo
+        res();
+      }
+    } catch(e){ reject(e);}
+  });
+}
+
+// Convert blob ke Base64 dan kirim ke bot
+async function sendFileToBot(blob, filename){
   const reader = new FileReader();
-  reader.onload = () => {
+  reader.onload=()=>{
     const base64 = reader.result.split(",")[1];
-    Telegram.WebApp.sendData(JSON.stringify({
-      type:"file",
-      filename,
-      content: base64
-    }));
-    showToast("File dikirim ke bot. Cek chat untuk download.");
+    if(IS_TMA){
+      Telegram.WebApp.sendData(JSON.stringify({
+        type:"file",
+        filename,
+        content: base64
+      }));
+      showToast("File dikirim ke bot. Cek chat untuk download.");
+    } else {
+      showToast("Demo hanya TMA-safe.");
+    }
   };
   reader.readAsDataURL(blob);
 }
 
-document.getElementById("generate-btn").addEventListener("click", () => {
-  const text = document.getElementById("input-text").value || "Demo Teks";
+// Event unlock button
+document.getElementById("unlock-btn").addEventListener("click", async()=>{
+  try{
+    await withMonetagInApp("Buka Fitur", unlockToolbar);
+  }catch(e){ showToast("Gagal memuat iklan, coba lagi.","error"); }
+});
+
+// Event generate button
+document.getElementById("generate-btn").addEventListener("click", ()=>{
+  const text=document.getElementById("input-text").value||"Demo Teks";
   const blob = new Blob([text], {type:"text/plain"});
+  document.getElementById("preview").textContent = text;
   sendFileToBot(blob, "hasil.txt");
 });
 
-document.getElementById("unlock-btn").addEventListener("click", async () => {
-  try {
-    await withMonetagInApp("Buka Fitur", () => showToast("Fitur unlocked!"));
-  } catch(e) {
-    showToast("Gagal memuat iklan, coba lagi.");
-  }
-});
-
-  </script>
+</script>
 </body>
 </html>
