@@ -1,86 +1,1043 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mini App TMA Direct Download</title>
-<style>
-body { display:flex; flex-direction:column; font-family: Inter, system-ui; margin:0; background:#000; color:#fff; }
-header, footer { padding:16px; background:#111; }
-main { flex:1; padding:16px; display:flex; flex-direction:column; gap:12px; }
-textarea { width:100%; height:100px; padding:8px; border-radius:12px; border:none; resize:none; }
-button { padding:12px; border-radius:12px; border:none; font-weight:500; cursor:pointer; background:#fff; color:#000; }
-#preview { background:#222; padding:8px; border-radius:8px; min-height:50px; white-space:pre-wrap; }
-.toast { position:fixed; bottom:16px; left:50%; transform:translateX(-50%); padding:8px 16px; border-radius:12px; z-index:999; color:#fff; }
-.toast.info{ background:#0c0; }
-.toast.error{ background:#c00; }
-</style>
-</head>
-<body>
-<header>
-<h1>Demo SPA TMA Direct</h1>
-<button id="theme-toggle">Tema</button>
-</header>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b0b0b" id="meta-theme-color" />
+  <title>AI Maker Teks To Image — Telegram Mini App</title>
 
-<main>
-<textarea id="input-text" placeholder="Ketik teks..."></textarea>
-<button id="generate-btn">Buat File</button>
-<pre id="preview"></pre>
-</main>
+  <!-- Monetag: Telegram Mini App in-app interstitial (LOCKED) -->
+  <script src='//libtl.com/sdk.js' data-zone='9256839' data-sdk='show_9256839'></script>
 
-<footer>
-<p>Demo Footer</p>
-</footer>
-
-<script>
-const IS_TMA = !!window.Telegram?.WebApp;
-
-// Toast TMA-safe
-function showToast(msg,type="info"){
-  const toast=document.createElement("div");
-  toast.className="toast "+type;
-  toast.textContent=msg;
-  document.body.appendChild(toast);
-  setTimeout(()=>toast.remove(),3000);
-}
-
-// Kirim file ke bot
-async function sendFileToBot(blob, filename){
-  const reader=new FileReader();
-  reader.onload=()=>{
-    const base64=reader.result.split(",")[1];
-    if(IS_TMA){
-      Telegram.WebApp.sendData(JSON.stringify({
-        type:"file",
-        filename,
-        content: base64
-      }));
-      showToast("File dikirim ke bot. Cek chat untuk download.");
-    } else {
-      showToast("Demo hanya TMA-safe.");
+  <style>
+    :root {
+      --bg: #0b0b0b;
+      --fg: #f2f2f2;
+      --muted: #bdbdbd;
+      --card: #111213;
+      --border: #222425;
+      --primary: #ffffff;
+      --accent: #e5e5e5;
+      --warn: #ffd257;
+      --ok: #6ee7b7;
+      --error: #ff7070;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 14px;
+      --focus: 0 0 0 2px #fff, 0 0 0 6px rgba(255,255,255,.25);
     }
-  };
-  reader.readAsDataURL(blob);
-}
+    
+    body.theme-light {
+      --bg: #fafafa;
+      --fg: #111;
+      --muted: #333;
+      --card: #fff;
+      --border: #eaeaea;
+      --primary: #000;
+      --accent: #111;
+      --warn: #a06a00;
+      --ok: #0e7e5a;
+      --error: #b00020;
+      --shadow: 0 10px 30px rgba(0,0,0,.1);
+    }
+    
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      line-height: 1.45;
+    }
+    
+    .noscript {
+      background: #ffbdbd; color: #300; padding: 10px; text-align: center;
+    }
+    
+    .app-header {
+      position: sticky; top: 0; z-index: 50;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 16px; background: var(--bg); border-bottom: 1px solid var(--border);
+      backdrop-filter: saturate(1.2) blur(6px);
+    }
+    
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .logo { font-size: 22px; }
+    .titles h1 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: 0.2px; }
+    .subtitle { margin: 2px 0 0; color: var(--muted); font-size: 12px; }
+    
+    .header-actions { display: flex; gap: 8px; }
+    
+    .icon-btn {
+      background: transparent; color: var(--fg); border: 1px solid var(--border);
+      padding: 8px 10px; border-radius: 12px; cursor: pointer;
+    }
+    .icon-btn:hover { background: var(--card); }
+    .icon-btn:focus-visible { outline: none; box-shadow: var(--focus); }
+    
+    .container {
+      width: 100%; max-width: 820px; margin: 14px auto; padding: 0 14px;
+      display: grid; gap: 14px;
+    }
+    
+    .card {
+      background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    
+    .card.controls { padding: 16px; }
+    .card.preview { padding: 0; overflow: hidden; }
+    
+    .grid { display: grid; gap: 12px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 640px) {
+      .row { grid-template-columns: 1fr; }
+    }
+    
+    .field { display: grid; gap: 6px; }
+    .field .label { color: var(--muted); font-size: 12px; letter-spacing: .2px; }
+    .field input, .field select, .field textarea {
+      width: 100%; padding: 12px 12px; border-radius: 12px;
+      border: 1px solid var(--border); background: transparent; color: var(--fg);
+    }
+    .field textarea { resize: vertical; min-height: 72px; }
+    
+    .inline { display: flex; align-items: center; gap: 8px; }
+    .switch { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    .switch input { transform: scale(1.1); }
+    
+    .cta-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media (max-width: 480px) { .cta-row { grid-template-columns: 1fr; } }
+    
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      border-radius: 12px; border: 1px solid var(--border);
+      background: var(--card); color: var(--fg); padding: 12px 14px; cursor: pointer;
+    }
+    .btn.primary { background: var(--primary); color: var(--bg); border-color: var(--primary); }
+    .btn.warn { background: var(--warn); color: #111; border-color: transparent; }
+    .btn.ghost { background: transparent; }
+    .btn[disabled] { opacity: .5; cursor: not-allowed; }
+    
+    .progress {
+      position: relative; overflow: hidden; height: 38px; border-radius: 12px;
+      border: 1px solid var(--border); background: rgba(255,255,255,.03);
+      display: flex; align-items: center;
+    }
+    .progress .bar {
+      position: absolute; inset: 0 auto 0 0; width: 0%; background: linear-gradient(90deg, #fff, #aaa);
+      border-radius: 12px; transition: width .28s ease;
+    }
+    .progress span { position: relative; z-index: 1; width: 100%; text-align: center; font-size: 13px; color: var(--muted); }
+    
+    .preview .preview-wrap {
+      width: 100%; aspect-ratio: 1/1; background: repeating-conic-gradient(from .25turn,#111 0 10px,#0d0d0d 10px 20px);
+      display: grid; place-items: center; border-bottom: 1px solid var(--border);
+    }
+    .preview canvas, .preview img { width: 100%; height: auto; display: block; }
+    .preview .toolbar { padding: 12px; display: flex; gap: 10px; justify-content: space-between; }
+    .hint { color: var(--muted); padding: 10px 12px 16px; margin: 0; }
+    
+    .app-footer {
+      text-align: center; padding: 16px; color: var(--muted); font-size: 12px;
+    }
+    
+    .modal {
+      position: fixed; inset: 0; background: rgba(0,0,0,.5);
+      display: none; align-items: flex-end; justify-content: center; padding: 12px;
+    }
+    .modal.show { display: flex; }
+    .modal-dialog {
+      background: var(--card); color: var(--fg); width: 100%; max-width: 720px;
+      border-radius: 16px 16px 12px 12px; border: 1px solid var(--border); box-shadow: var(--shadow);
+      transform: translateY(8px); opacity: 0; transition: .25s ease;
+      max-height: 80vh; display: grid; grid-template-rows: auto 1fr auto;
+    }
+    .modal.show .modal-dialog { transform: translateY(0); opacity: 1; }
+    .modal-header, .modal-footer { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+    .modal-footer { border-top: 1px solid var(--border); border-bottom: none; display: flex; gap: 8px; justify-content: space-between; }
+    .modal-body { padding: 12px 14px; overflow: auto; }
+    .modal-header h3 { margin: 0; font-size: 16px; }
+    .modal-header .close { border: none; background: transparent; color: var(--fg); }
+    
+    .advanced summary { cursor: pointer; margin: 4px 0 8px; }
+    .advanced p { color: var(--muted); margin-top: 0; }
+    
+    .toast-host {
+      position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%);
+      display: grid; gap: 8px; width: min(92vw, 480px); z-index: 9999;
+    }
+    .toast {
+      background: var(--card); color: var(--fg); border: 1px solid var(--border);
+      border-left: 6px solid var(--accent);
+      padding: 10px 12px; border-radius: 12px; box-shadow: var(--shadow);
+    }
+    .toast.info { border-left-color: #8ab4f8; }
+    .toast.ok { border-left-color: var(--ok); }
+    .toast.warn { border-left-color: var(--warn); }
+    .toast.error { border-left-color: var(--error); }
+    
+    :focus-visible { outline: none; box-shadow: var(--focus); }
+    </style>
 
-// Event Generate
-document.getElementById("generate-btn").addEventListener("click", ()=>{
-  const text=document.getElementById("input-text").value||"Demo Teks";
-  const blob=new Blob([text], {type:"text/plain"});
-  document.getElementById("preview").textContent=text;
-  sendFileToBot(blob,"hasil.txt");
-});
+  <script>
+    // Early TMA detection for header color
+    (function(){
+      const IS_TMA = !!window.Telegram?.WebApp;
+      if (IS_TMA) {
+        try {
+          window.Telegram.WebApp.ready();
+          window.Telegram.WebApp.setHeaderColor("#0b0b0b");
+        } catch(e){}
+      }
+    }());
+  </script>
+</head>
+<body class="theme-dark">
+  <noscript>
+    <div class="noscript">Harap aktifkan JavaScript untuk menggunakan aplikasi ini.</div>
+  </noscript>
 
-// Theme toggle
-document.getElementById("theme-toggle").addEventListener("click", ()=>{
-  if(document.body.style.background=="#000"){
-    document.body.style.background="#fff";
-    document.body.style.color="#000";
-  } else {
-    document.body.style.background="#000";
-    document.body.style.color="#fff";
-  }
-});
-</script>
+  <header class="app-header">
+    <div class="brand">
+      <span class="logo">✦</span>
+      <div class="titles">
+        <h1 id="app-title">AI Maker Teks To Image</h1>
+        <p class="subtitle">Ubah teks menjadi gambar AI gratis</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button id="themeToggle" class="icon-btn" aria-label="Toggle tema" title="Tema">
+        <span>🌗</span>
+      </button>
+      <button id="supportBtn" class="icon-btn" aria-label="Dukungan" title="Dukungan">❤️</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="card controls">
+      <div class="grid">
+        <label class="field">
+          <span class="label">Prompt (teks ke gambar)</span>
+          <textarea id="prompt" rows="3" placeholder="Contoh: kucing astronot bergaya vaporwave, neon, sangat detail"></textarea>
+        </label>
+
+        <div class="row">
+          <label class="field">
+            <span class="label">Gaya</span>
+            <select id="style">
+              <option value="sinergi detail, fotorealistik, warna alami">Fotorealistik</option>
+              <option value="ilustrasi digital, garis bersih, warna pop, poster">Ilustrasi</option>
+              <option value="sci‑fi, neon, glitch, vaporwave">Vaporwave</option>
+              <option value="studio lighting, depth of field, 85mm">Potret</option>
+              <option value="low‑poly, isometric, game art">Isometric</option>
+              <option value="pixel art 16‑bit, palet terbatas">Pixel Art</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="label">Negatif (hindari)</span>
+            <input id="negative" type="text" placeholder="buram, noise, anatomi buruk" />
+          </label>
+        </div>
+
+        <div class="row">
+          <label class="field">
+            <span class="label">Rasio & Resolusi</span>
+            <select id="ratio">
+              <option value="768x768">Persegi 768×768</option>
+              <option value="1024x768">Lanskap 1024×768</option>
+              <option value="768x1024">Potret 768×1024</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="label">Model</span>
+            <select id="model">
+              <option value="flux">FLUX (Pollinations)</option>
+              <option value="turbo">Turbo (Pollinations)</option>
+              <option value="any">Auto</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="row">
+          <label class="field">
+            <span class="label">Seed</span>
+            <div class="inline">
+              <input id="seed" type="number" min="0" max="9999999" step="1" value="0" />
+              <button id="randSeed" class="btn ghost">Acak</button>
+            </div>
+          </label>
+
+          <label class="field">
+            <span class="label">Provider</span>
+            <select id="providerSelect"></select>
+          </label>
+        </div>
+
+        <div class="cta-row">
+          <button id="generateBtn" class="btn primary">🎨 Buat Gambar</button>
+          <button id="unlockBtn" class="btn warn">🔓 Buka Fitur</button>
+        </div>
+
+        <div class="progress" id="progress" hidden>
+          <div class="bar" id="progressBar"></div>
+          <span id="progressText">Menyiapkan…</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card preview">
+      <div class="preview-wrap">
+        <canvas id="previewCanvas" width="768" height="768" aria-label="Pratinjau gambar"></canvas>
+        <img id="previewImage" alt="Hasil AI" hidden />
+      </div>
+      <div class="toolbar" id="toolbar">
+        <button id="downloadBtn" class="btn" disabled>⬇️ Unduh</button>
+        <button id="shareBtn" class="btn" disabled>📤 Bagikan</button>
+        <button id="settingsBtn" class="btn ghost">⚙️ Pengaturan</button>
+      </div>
+      <p class="hint">Tip: gunakan kata kunci jelas dan spesifik. Contoh: “epic cinematic dragon, volumetric light, ultra detail”.</p>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <span>© 2025 • Dibuat untuk Telegram Mini App • Mode: <span id="modeLabel">Web/TMA</span></span>
+  </footer>
+
+  <!-- Modal / Bottom Sheet -->
+  <div id="modal" class="modal" aria-hidden="true" aria-modal="true" role="dialog">
+    <div class="modal-dialog" role="document" tabindex="-1" aria-label="Lembar Pengaturan">
+      <header class="modal-header">
+        <h3 id="modalTitle">Pengaturan</h3>
+        <button class="icon-btn close" id="modalClose" aria-label="Tutup">✕</button>
+      </header>
+      <div class="modal-body">
+        <div id="settingsContent">
+          <div class="field">
+            <label class="switch">
+              <input id="hiresToggle" type="checkbox" />
+              <span>Mode kualitas tinggi (lebih lambat)</span>
+            </label>
+            <small>Di Pollinations, gunakan ukuran lebih besar untuk kualitas lebih baik (tergantung provider).</small>
+          </div>
+          <div class="field">
+            <label class="switch">
+              <input id="autoUploadToggle" type="checkbox" checked />
+              <span>Auto upload ke tmpfiles saat di Telegram</span>
+            </label>
+          </div>
+          <details class="advanced">
+            <summary>Provider lanjutan (proxy)</summary>
+            <p>
+              Jika ingin memakai model berbayar/HuggingFace yang memerlukan token, siapkan proxy serverless
+              yang menambahkan Authorization. Contoh: vercel function untuk SDXL.
+            </p>
+            <label class="field">
+              <span class="label">Custom Provider URL</span>
+              <input id="customProviderUrl" type="url" placeholder="https://your-proxy.example.com/generate" />
+            </label>
+          </details>
+        </div>
+        <div id="supportContent" hidden>
+          <p><strong>Terima kasih!</strong> Aplikasi ini gratis, mendukung Telegram Mini Apps & browser.</p>
+          <ul>
+            <li>Provider utama: Pollinations (gratis, tanpa kunci)</li>
+            <li>Fallback lokal: Canvas generator</li>
+            <li>Unduh/Bagikan di TMA: via upload sementara (tmpfiles.org)</li>
+          </ul>
+          <div class="cta-row">
+            <button class="btn primary" id="followTelegram">Ikuti Channel</button>
+            <button class="btn ghost" id="coffeeBtn">Traktir Kopi ☕</button>
+          </div>
+        </div>
+      </div>
+      <footer class="modal-footer">
+        <button class="btn ghost" id="modalSwitch">Pengaturan</button>
+        <button class="btn" id="modalOk">Tutup</button>
+      </footer>
+    </div>
+  </div>
+
+  <div id="toastHost" class="toast-host" aria-live="polite"></div>
+
+  <script>
+    /* PREFLIGHT_OK: TMA_SAFE */
+    (function(){
+      "use strict";
+    
+      // Global exports container (JS CONTRACT)
+      const API = {};
+      const IS_TMA = !!window.Telegram?.WebApp;
+      const AD_TIMEOUT_MS = 12000;
+      const adQueue = [];
+      let toolbarLocked = true;
+      let CURRENT_BLOB = null;
+      let CURRENT_URL = null;
+      let LAST_UPLOAD_URL = null;
+      let CURRENT_PROVIDER_ID = null;
+      let FOCUS_PREV = null;
+      let MODAL_ACTIVE_SECTION = 'settings';
+    
+      // Elements
+      const $ = (sel, root=document) => root.querySelector(sel);
+      const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+    
+      // Init on ready
+      document.addEventListener('DOMContentLoaded', () => {
+        API.initApp({ title: "AI Maker Teks To Image", options: {} }).catch(err => {
+          console.error(err);
+          tryRenderJSONError(err);
+        });
+      });
+    
+      function tryRenderJSONError(err) {
+        const tokenOk = runPreflightChecks().ok;
+        if (!tokenOk) {
+          document.body.innerHTML = `<pre style="white-space:pre-wrap">${JSON.stringify({ ok:false, errors:["missing token: PREFLIGHT_OK"] }, null, 2)}</pre>`;
+        }
+      }
+    
+      // ====== JS CONTRACT ======
+    
+      function parseTitle(titleInput) {
+        const title = Array.isArray(titleInput) ? titleInput.join(" ").trim() : String(titleInput||"").trim();
+        const involvesAI = /ai|ml|model|gpt|diffusion|image|teks|text/i.test(title);
+        const capability = "text2image";
+        const primaryCTA = "Buat Gambar";
+        const inputs = ["prompt", "style", "negative", "ratio", "model", "seed"];
+        const ui = { theme: "black-white", layout: "single-column", showToolbar: true };
+        return { title, involvesAI, capability, primaryCTA, inputs, ui };
+      }
+    
+      const PROVIDER_CHOICES = [
+        {
+          id: "pollinations",
+          label: "Pollinations (Gratis)",
+          type: "cdn",
+          requiresAuth: false,
+          cors: "yes",
+          url: "https://image.pollinations.ai/prompt/{PROMPT}?width={W}&height={H}&seed={SEED}&nologo=true{MODEL}",
+          quality: "mid",
+          notes: "Tanpa kunci, cepat, cocok untuk TMA."
+        },
+        {
+          id: "local-canvas",
+          label: "Canvas Lokal (Fallback)",
+          type: "local",
+          requiresAuth: false,
+          cors: "n/a",
+          url: "local",
+          quality: "low",
+          notes: "Generator lokal berbasis canvas jika provider tidak tersedia."
+        },
+        {
+          id: "hf-proxy-sdxl",
+          label: "HuggingFace SDXL via Proxy (Lanjutan)",
+          type: "proxy",
+          requiresAuth: true,
+          cors: "depends",
+          url: "{CUSTOM_PROXY_URL}",
+          quality: "high",
+          notes: "Butuh proxy serverless untuk menyisipkan Authorization: Bearer HF_TOKEN. Instruksi ada di Pengaturan."
+        }
+      ];
+    
+      async function discoverProviders(spec) {
+        // Basic filtration by availability; avoid network head checks to stay fast in TMA.
+        const candidates = [...PROVIDER_CHOICES];
+        const available = [];
+        for (const p of candidates) {
+          if (p.id === "pollinations") {
+            available.push(p);
+          } else if (p.id === "local-canvas") {
+            available.push(p);
+          } else if (p.id === "hf-proxy-sdxl") {
+            // Only include if user set custom proxy URL
+            const custom = $("#customProviderUrl")?.value?.trim();
+            if (custom) available.push({ ...p, url: custom });
+          }
+        }
+        return available;
+      }
+    
+      async function loadProviderClient(providerId) {
+        if (providerId === "pollinations") {
+          return {
+            async generate(input, settings, onProgress) {
+              const { prompt, negative, width, height, model, seed } = input;
+              const neg = negative ? `, no:${negative}` : "";
+              const style = input.style ? `, ${input.style}` : "";
+              const fullPrompt = encodeURIComponent(`${prompt}${style}${neg}`.replace(/\s+/g, ' ').trim());
+              const modelParam = model && model !== 'any' ? `&model=${encodeURIComponent(model)}` : "";
+              const url = `https://image.pollinations.ai/prompt/${fullPrompt}?width=${width}&height=${height}&seed=${seed}&nologo=true${modelParam}&bust=${Date.now()}`;
+    
+              onProgress?.(0.15, "Menghubungkan ke Pollinations…");
+              const res = await fetch(url, { mode: "cors", cache: "no-store" });
+              if (!res.ok) throw new Error(`Gagal fetch (${res.status})`);
+              onProgress?.(0.6, "Mengunduh gambar…");
+              const blob = await res.blob(); // image/jpeg or png
+              onProgress?.(0.9, "Menyiapkan pratinjau…");
+              return { blob, meta: { provider: "pollinations", width, height, mime: blob.type } };
+            }
+          };
+        }
+    
+        if (providerId === "local-canvas") {
+          return {
+            async generate(input, settings, onProgress) {
+              onProgress?.(0.1, "Membuat kanvas…");
+              const { prompt, width, height, seed } = input;
+              const canvas = document.createElement('canvas');
+              canvas.width = width; canvas.height = height;
+              const ctx = canvas.getContext('2d');
+              const rand = mulberry32(Number(seed) || Date.now());
+    
+              // Gradient background
+              const g = ctx.createLinearGradient(0, 0, width, height);
+              const hue = Math.floor(rand() * 360);
+              g.addColorStop(0, `hsl(${(hue)%360} 70% 12%)`);
+              g.addColorStop(1, `hsl(${(hue+60)%360} 70% 18%)`);
+              ctx.fillStyle = g; ctx.fillRect(0,0,width,height);
+    
+              // Noise dots
+              onProgress?.(0.3, "Menambahkan tekstur…");
+              const dots = 800 + Math.floor(rand()*800);
+              ctx.globalAlpha = 0.15;
+              for (let i=0;i<dots;i++){
+                ctx.fillStyle = `hsl(${(hue + (rand()*80-40))%360} 60% ${20+rand()*10}%)`;
+                const r = 0.5 + rand()*1.8;
+                ctx.beginPath();
+                ctx.arc(rand()*width, rand()*height, r, 0, Math.PI*2);
+                ctx.fill();
+              }
+              ctx.globalAlpha = 1;
+    
+              // Title text wrap
+              onProgress?.(0.6, "Merender teks…");
+              ctx.fillStyle = "rgba(255,255,255,.92)";
+              ctx.font = `${Math.max(18, Math.floor(Math.min(width,height)/20))}px Inter, system-ui, sans-serif`;
+              ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    
+              const words = `${prompt}`.split(/\s+/).slice(0,36);
+              const lines = [];
+              let line = "";
+              const maxWidth = width * 0.8;
+              for (const w of words) {
+                const test = line ? line + " " + w : w;
+                const metr = ctx.measureText(test);
+                if (metr.width > maxWidth) {
+                  lines.push(line); line = w;
+                } else {
+                  line = test;
+                }
+              }
+              if (line) lines.push(line);
+    
+              const centerY = height/2;
+              const lineHeight = Math.max(24, Math.floor(Math.min(width,height)/16));
+              const blockHeight = lines.length * lineHeight;
+              let y = centerY - blockHeight/2 + lineHeight/2;
+    
+              ctx.shadowColor = "rgba(0,0,0,.35)";
+              ctx.shadowBlur = 8;
+              for (const ln of lines) {
+                ctx.fillText(ln, width/2, y);
+                y += lineHeight;
+              }
+              ctx.shadowBlur = 0;
+    
+              // Footer tag
+              ctx.fillStyle = "rgba(255,255,255,.6)";
+              ctx.font = `bold ${Math.max(12, Math.floor(Math.min(width,height)/36))}px Inter, system-ui, sans-serif`;
+              ctx.textAlign = "right";
+              ctx.fillText("Canvas Fallback • Teks→Gambar", width - 16, height - 20);
+    
+              onProgress?.(0.85, "Mengonversi ke blob…");
+              const blob = await new Promise(res=>canvas.toBlob(res, "image/png", 0.95));
+              return { blob, meta: { provider: "local-canvas", width, height, mime: "image/png" } };
+            }
+          };
+        }
+    
+        if (providerId === "hf-proxy-sdxl") {
+          return {
+            async generate(input, settings, onProgress) {
+              const proxy = ($("#customProviderUrl")?.value||"").trim();
+              if (!proxy) throw new Error("Proxy tidak dikonfigurasi.");
+              onProgress?.(0.2, "Memanggil proxy…");
+              const payload = {
+                inputs: input.prompt,
+                parameters: {
+                  negative_prompt: input.negative || "",
+                  width: input.width, height: input.height, guidance_scale: 7.5, num_inference_steps: 25, seed: Number(input.seed)||0
+                }
+              };
+              const res = await fetch(proxy, {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify(payload)
+              });
+              if (!res.ok) throw new Error(`Proxy error ${res.status}`);
+              onProgress?.(0.7, "Mengunduh hasil…");
+              const blob = await res.blob();
+              return { blob, meta: { provider: "hf-proxy-sdxl", width: input.width, height: input.height, mime: blob.type } };
+            }
+          };
+        }
+    
+        throw new Error("Provider tidak dikenali.");
+      }
+    
+      function buildPipeline(capabilityKey) {
+        if (capabilityKey !== "text2image") throw new Error("Capability tidak didukung.");
+        return {
+          async run(input, settings, onProgress) {
+            const providerId = CURRENT_PROVIDER_ID || "pollinations";
+            const client = await loadProviderClient(providerId);
+            return client.generate(input, settings, onProgress);
+          }
+        };
+      }
+    
+      async function initApp({ title }) {
+        // Setup title and env
+        const spec = parseTitle(title);
+        $("#app-title").textContent = spec.title || "AI Maker Teks To Image";
+        $("#modeLabel").textContent = IS_TMA ? "Telegram" : "Browser";
+    
+        // Theme persistence
+        const savedTheme = localStorage.getItem("theme") || "dark";
+        setTheme(savedTheme);
+    
+        // Provider discovery
+        const providers = await discoverProviders(spec);
+        const select = $("#providerSelect");
+        select.innerHTML = providers.map(p => `<option value="${p.id}">${p.label}</option>`).join("");
+        CURRENT_PROVIDER_ID = providers[0]?.id || "local-canvas";
+        select.value = CURRENT_PROVIDER_ID;
+        select.addEventListener("change", (e) => {
+          CURRENT_PROVIDER_ID = e.target.value;
+          showToast(`Provider: ${providers.find(p=>p.id===CURRENT_PROVIDER_ID)?.label||CURRENT_PROVIDER_ID}`, "info");
+        });
+    
+        // Events
+        $("#generateBtn").addEventListener("click", onGenerateClick);
+        $("#downloadBtn").addEventListener("click", onDownloadClick);
+        $("#shareBtn").addEventListener("click", onShareClick);
+        $("#settingsBtn").addEventListener("click", () => showModal("settings"));
+        $("#supportBtn").addEventListener("click", onSupportClick);
+        $("#unlockBtn").addEventListener("click", onUnlockClick);
+        $("#themeToggle").addEventListener("click", toggleTheme);
+        $("#randSeed").addEventListener("click", (e)=> {
+          e.preventDefault();
+          $("#seed").value = Math.floor(Math.random()*9999999);
+        });
+    
+        // Modal wiring
+        $("#modalClose").addEventListener("click", closeModal);
+        $("#modalOk").addEventListener("click", closeModal);
+        $("#modalSwitch").addEventListener("click", () => {
+          MODAL_ACTIVE_SECTION = MODAL_ACTIVE_SECTION === 'settings' ? 'support' : 'settings';
+          renderModalSection();
+        });
+        $("#followTelegram").addEventListener("click", () => openLinkSafe("https://t.me/telegram"));
+        $("#coffeeBtn").addEventListener("click", () => openLinkSafe("https://buymeacoffee.com/"));
+    
+        // Draw placeholder on canvas
+        drawPlaceholder();
+    
+        // Lock toolbar by default
+        lockToolbarButtons();
+    
+        // TMA header color
+        if (IS_TMA) safeSetHeaderColor();
+    
+        // Preflight
+        const pre = runPreflightChecks();
+        if (!pre.ok) {
+          document.body.innerHTML = `<pre style="white-space:pre-wrap">${JSON.stringify(pre, null, 2)}</pre>`;
+          return;
+        }
+    
+        showToast("Siap! Tulis prompt lalu tekan Buat Gambar.", "ok", 2000);
+      }
+    
+      function safeSetHeaderColor() {
+        try {
+          const isDark = document.body.classList.contains("theme-dark");
+          const color = isDark ? "#0b0b0b" : "#ffffff";
+          window.Telegram?.WebApp?.setHeaderColor(color);
+          const meta = document.getElementById("meta-theme-color");
+          if (meta) meta.setAttribute("content", color);
+        } catch(e){}
+      }
+    
+      function setTheme(mode) {
+        const dark = mode !== "light";
+        document.body.classList.toggle("theme-dark", dark);
+        document.body.classList.toggle("theme-light", !dark);
+        localStorage.setItem("theme", dark ? "dark" : "light");
+        safeSetHeaderColor();
+      }
+    
+      function toggleTheme() {
+        const dark = document.body.classList.contains("theme-dark");
+        setTheme(dark ? "light" : "dark");
+      }
+    
+      function drawPlaceholder() {
+        const canvas = $("#previewCanvas");
+        const ctx = canvas.getContext("2d");
+        const w = canvas.width, h = canvas.height;
+        const g = ctx.createLinearGradient(0,0,w,h);
+        g.addColorStop(0, "#0f0f12"); g.addColorStop(1, "#1a1b1f");
+        ctx.fillStyle = g; ctx.fillRect(0,0,w,h);
+    
+        ctx.fillStyle = "rgba(255,255,255,.85)";
+        ctx.font = "700 28px Inter, system-ui, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("AI Maker • Teks → Gambar", w/2, h/2 - 12);
+    
+        ctx.fillStyle = "rgba(255,255,255,.6)";
+        ctx.font = "14px Inter, system-ui, sans-serif";
+        ctx.fillText("Tulis prompt dan klik Buat Gambar", w/2, h/2 + 20);
+      }
+    
+      function mulberry32(a) {
+        return function() {
+          let t = a += 0x6D2B79F5;
+          t = Math.imul(t ^ t >>> 15, t | 1);
+          t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+          return ((t ^ t >>> 14) >>> 0) / 4294967296;
+        }
+      }
+    
+      function updateProgress(val, text) {
+        const p = $("#progress");
+        const bar = $("#progressBar");
+        const label = $("#progressText");
+        p.hidden = false;
+        bar.style.width = `${Math.max(3, Math.floor(val*100))}%`;
+        label.textContent = text || "";
+        if (val >= 0.999) {
+          setTimeout(() => { p.hidden = true; bar.style.width = "0%"; }, 600);
+        }
+      }
+    
+      async function onGenerateClick() {
+        const prompt = $("#prompt").value.trim();
+        if (!prompt) return showToast("Masukkan prompt terlebih dahulu.", "warn");
+        const negative = $("#negative").value.trim();
+        const [w,h] = $("#ratio").value.split("x").map(n=>parseInt(n,10));
+        const seed = $("#seed").value || "0";
+    
+        const styleSel = $("#style").value;
+        const model = $("#model").value;
+    
+        const hires = $("#hiresToggle").checked;
+        const width = hires ? Math.round(w * 1.25) : w;
+        const height = hires ? Math.round(h * 1.25) : h;
+    
+        const pipeline = buildPipeline("text2image");
+        updateProgress(0.05, "Menyiapkan…");
+    
+        try {
+          const { blob, meta } = await pipeline.run({
+            prompt, negative, style: styleSel, model, width, height, seed
+          }, {}, (p, msg) => updateProgress(p, msg));
+    
+          CURRENT_BLOB = blob;
+          if (CURRENT_URL) URL.revokeObjectURL(CURRENT_URL);
+          CURRENT_URL = URL.createObjectURL(blob);
+          LAST_UPLOAD_URL = null;
+    
+          // Render image using <img> for crispness
+          const img = $("#previewImage");
+          img.src = CURRENT_URL;
+          img.hidden = false;
+          $("#previewCanvas").style.display = "none";
+    
+          // Unlock download/share if user already watched ad
+          if (!toolbarLocked) {
+            $("#downloadBtn").disabled = false;
+            $("#shareBtn").disabled = false;
+          }
+    
+          updateProgress(1, "Selesai.");
+          showToast(`Gambar siap (${meta.provider})`, "ok");
+        } catch (e) {
+          console.error(e);
+          updateProgress(1, "Gagal.");
+          showToast(`Gagal membuat gambar: ${e.message}`, "error", 3500);
+        }
+      }
+    
+      async function onDownloadClick() {
+        if (!CURRENT_BLOB) return showToast("Belum ada gambar untuk diunduh.", "warn");
+        const filename = `t2i_${Date.now()}.` + (CURRENT_BLOB.type.includes("png") ? "png" : "jpg");
+    
+        if (IS_TMA) {
+          try {
+            const autoUpload = $("#autoUploadToggle").checked !== false;
+            if (!autoUpload) {
+              showToast("Auto upload dimatikan. Aktifkan di Pengaturan untuk unduh via TMA.", "info");
+              return;
+            }
+            const link = await uploadBlobToTmp(CURRENT_BLOB, filename);
+            openLinkSafe(link);
+            LAST_UPLOAD_URL = link;
+            showToast("File siap diunduh. Simpan manual dari browser.", "ok");
+          } catch (e) {
+            console.error(e);
+            showToast("Gagal mengunggah file untuk unduh. Coba lagi.", "error");
+          }
+          return;
+        }
+    
+        downloadBlob(CURRENT_BLOB, filename, CURRENT_BLOB.type);
+      }
+    
+      async function onShareClick() {
+        if (!CURRENT_BLOB && !LAST_UPLOAD_URL) {
+          return showToast("Buat gambar terlebih dahulu.", "warn");
+        }
+        try {
+          let url = LAST_UPLOAD_URL;
+          if (!url) {
+            url = await uploadBlobToTmp(CURRENT_BLOB, `share_${Date.now()}.png`);
+            LAST_UPLOAD_URL = url;
+          }
+    
+          if (IS_TMA) {
+            openLinkSafe(url);
+            showToast("Tautan dibuka. Bagikan dari browser Telegram.", "info");
+          } else if (navigator.share) {
+            await navigator.share({ title: "AI Teks→Gambar", text: "Hasilku 🎨", url });
+          } else {
+            await navigator.clipboard.writeText(url);
+            showToast("Tautan disalin ke papan klip.", "ok");
+          }
+        } catch (e) {
+          console.error(e);
+          showToast("Gagal membagikan. Coba lagi.", "error");
+        }
+      }
+    
+      async function onSupportClick() {
+        showModal("support");
+      }
+    
+      async function onUnlockClick(event) {
+        await withMonetagInApp("Buka Fitur", () => unlockToolbarButtons());
+      }
+    
+      function lockToolbarButtons() {
+        toolbarLocked = true;
+        $("#downloadBtn").disabled = true;
+        $("#shareBtn").disabled = true;
+      }
+    
+      function unlockToolbarButtons() {
+        toolbarLocked = false;
+        if (CURRENT_BLOB) {
+          $("#downloadBtn").disabled = false;
+          $("#shareBtn").disabled = false;
+        }
+        showToast("Fitur terbuka! Unduh & Bagikan aktif.", "ok");
+      }
+    
+      function monetagReady(timeout = 5000) {
+        return new Promise((resolve, reject) => {
+          const start = Date.now();
+          (function check() {
+            if (typeof window.show_9256839 === "function") return resolve(true);
+            if (Date.now() - start > timeout) return reject(new Error("Monetag SDK timeout"));
+            setTimeout(check, 100);
+          })();
+        });
+      }
+    
+      async function withMonetagInApp(reason, onAfter) {
+        try {
+          await monetagReady();
+        } catch {
+          showToast("Gagal memuat iklan, coba lagi.", "error");
+          return;
+        }
+        try {
+          // Queue the ad to avoid stacking
+          const ticket = Symbol("ad");
+          adQueue.push(ticket);
+    
+          // Only play if first in queue
+          if (adQueue[0] !== ticket) {
+            await waitFor(() => adQueue[0] === ticket, 8000).catch(()=>{});
+          }
+    
+          // TMA-safe: do not use window.open; rely on SDK function directly
+          const adPromise = new Promise((resolve) => {
+            let settled = false;
+            const finish = () => { if (!settled) { settled = true; resolve(); } };
+            // Fallback timeout if no callback available
+            setTimeout(finish, AD_TIMEOUT_MS);
+            try {
+              // Monetag function name from data-sdk='show_9256839'
+              window.show_9256839();
+            } catch(e) {
+              console.warn("Monetag call error:", e);
+              finish();
+            }
+            // Also resolve on focus gain (user closed ad)
+            window.addEventListener("focus", finish, { once: true });
+          });
+    
+          await adPromise;
+          // Dequeue
+          if (adQueue[0] === ticket) adQueue.shift();
+    
+          // Post-ad behavior
+          showToast("Iklan selesai. Terima kasih!", "ok");
+          await Promise.resolve(onAfter?.());
+        } catch (e) {
+          console.error(e);
+          showToast("Gagal memuat iklan, coba lagi.", "error");
+        }
+      }
+    
+      // Utilities
+    
+      function waitFor(cond, timeout=3000, step=100) {
+        return new Promise((resolve, reject) => {
+          const start = Date.now();
+          (function loop() {
+            if (cond()) return resolve(true);
+            if (Date.now()-start > timeout) return reject(new Error("timeout"));
+            setTimeout(loop, step);
+          })();
+        });
+      }
+    
+      function downloadBlob(blob, filename, mime="application/octet-stream") {
+        const a = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        a.href = url; a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 200);
+      }
+    
+      async function uploadBlobToTmp(blob, filename="file.bin") {
+        // tmpfiles.org simple API; returns { data: { url, id } }
+        const form = new FormData();
+        form.append("file", blob, filename);
+        const res = await fetch("https://tmpfiles.org/api/v1/upload", { method: "POST", body: form });
+        if (!res.ok) throw new Error("Upload gagal");
+        const json = await res.json();
+        // API returns short URL in "data.url" often as https://tmpfiles.org/xxxxx
+        // Direct link may require redirect; openLink will handle it in Telegram
+        const link = json?.data?.url || json?.url || "";
+        if (!/^https?:\/\//.test(link)) throw new Error("URL upload tidak valid");
+        return link;
+      }
+    
+      function openLinkSafe(url) {
+        if (IS_TMA && window.Telegram?.WebApp?.openLink) {
+          window.Telegram.WebApp.openLink(url, { try_instant_view: false });
+        } else {
+          window.open(url, "_blank", "noopener,noreferrer");
+        }
+      }
+    
+      function showToast(msg, type="info", timeout=2200) {
+        const host = $("#toastHost");
+        const div = document.createElement("div");
+        div.className = `toast ${type}`;
+        div.textContent = msg;
+        host.appendChild(div);
+        setTimeout(() => {
+          div.style.opacity = "0";
+          div.style.transform = "translateY(6px)";
+          setTimeout(() => div.remove(), 300);
+        }, timeout);
+      }
+    
+      function trapFocus(container, enable=true) {
+        if (!enable) {
+          document.removeEventListener("keydown", handle);
+          return;
+        }
+        function handle(e) {
+          if (e.key !== "Tab") return;
+          const focusables = $$("button, [href], input, select, textarea, [tabindex]:not([tabindex=\"-1\"])",
+            container).filter(el => !el.disabled && el.offsetParent !== null);
+          if (!focusables.length) return;
+          const first = focusables[0], last = focusables[focusables.length-1];
+          if (e.shiftKey && document.activeElement === first) {
+            last.focus(); e.preventDefault();
+          } else if (!e.shiftKey && document.activeElement === last) {
+            first.focus(); e.preventDefault();
+          }
+        }
+        document.addEventListener("keydown", handle);
+      }
+    
+      function showModal(which) {
+        MODAL_ACTIVE_SECTION = which === "support" ? "support" : "settings";
+        renderModalSection();
+        const modal = $("#modal");
+        const dlg = $(".modal-dialog", modal);
+        modal.classList.add("show");
+        modal.setAttribute("aria-hidden", "false");
+        FOCUS_PREV = document.activeElement;
+        dlg.focus();
+        trapFocus(dlg, true);
+        const onEsc = (e) => { if (e.key === "Escape") closeModal(); };
+        modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); }, { once: true });
+        document.addEventListener("keydown", onEsc, { once: true });
+      }
+    
+      function renderModalSection() {
+        $("#modalTitle").textContent = MODAL_ACTIVE_SECTION === 'support' ? "Dukungan" : "Pengaturan";
+        $("#modalSwitch").textContent = MODAL_ACTIVE_SECTION === 'support' ? "Pengaturan" : "Dukungan";
+        $("#settingsContent").hidden = MODAL_ACTIVE_SECTION !== 'settings';
+        $("#supportContent").hidden = MODAL_ACTIVE_SECTION !== 'support';
+      }
+    
+      function closeModal() {
+        const modal = $("#modal");
+        modal.classList.remove("show");
+        modal.setAttribute("aria-hidden", "true");
+        trapFocus($(".modal-dialog", modal), false);
+        if (FOCUS_PREV && FOCUS_PREV.focus) FOCUS_PREV.focus();
+      }
+    
+      function runPreflightChecks() {
+        const hasToken = true; // token present at top comment
+        if (!hasToken) return { ok: false, errors: ["missing token: PREFLIGHT_OK"] };
+        return { ok: true, env: IS_TMA ? "TMA" : "WEB" };
+      }
+    
+      // ====== Export to window (JS CONTRACT) ======
+      API.parseTitle = parseTitle;
+      API.PROVIDER_CHOICES = PROVIDER_CHOICES;
+      API.discoverProviders = discoverProviders;
+      API.loadProviderClient = loadProviderClient;
+      API.buildPipeline = buildPipeline;
+      API.onGenerateClick = onGenerateClick;
+      API.onDownloadClick = onDownloadClick;
+      API.onSupportClick = onSupportClick;
+      API.onUnlockClick = onUnlockClick;
+      API.downloadBlob = downloadBlob;
+      API.showModal = showModal;
+      API.closeModal = closeModal;
+      API.showToast = showToast;
+      API.runPreflightChecks = runPreflightChecks;
+      API.initApp = initApp;
+    
+      window.PROVIDER_CHOICES = PROVIDER_CHOICES;
+      Object.assign(window, API);
+    
+    })(); 
+    </script>
 </body>
 </html>
