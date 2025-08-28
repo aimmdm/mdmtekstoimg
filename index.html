@@ -3,16 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mini App TMA Full Single File</title>
-<!-- Monetag SDK -->
-<script src='//libtl.com/sdk.js' data-zone='9256839' data-sdk='show_9256839'></script>
+<title>Mini App TMA Direct Download</title>
 <style>
 body { display:flex; flex-direction:column; font-family: Inter, system-ui; margin:0; background:#000; color:#fff; }
 header, footer { padding:16px; background:#111; }
 main { flex:1; padding:16px; display:flex; flex-direction:column; gap:12px; }
 textarea { width:100%; height:100px; padding:8px; border-radius:12px; border:none; resize:none; }
 button { padding:12px; border-radius:12px; border:none; font-weight:500; cursor:pointer; background:#fff; color:#000; }
-button:disabled { opacity:0.5; cursor:not-allowed; }
 #preview { background:#222; padding:8px; border-radius:8px; min-height:50px; white-space:pre-wrap; }
 .toast { position:fixed; bottom:16px; left:50%; transform:translateX(-50%); padding:8px 16px; border-radius:12px; z-index:999; color:#fff; }
 .toast.info{ background:#0c0; }
@@ -21,14 +18,13 @@ button:disabled { opacity:0.5; cursor:not-allowed; }
 </head>
 <body>
 <header>
-<h1>Demo SPA TMA</h1>
+<h1>Demo SPA TMA Direct</h1>
 <button id="theme-toggle">Tema</button>
 </header>
 
 <main>
 <textarea id="input-text" placeholder="Ketik teks..."></textarea>
-<button id="generate-btn" disabled>Buat File</button>
-<button id="unlock-btn">Buka Fitur (Tonton Iklan)</button>
+<button id="generate-btn">Buat File</button>
 <pre id="preview"></pre>
 </main>
 
@@ -39,49 +35,13 @@ button:disabled { opacity:0.5; cursor:not-allowed; }
 <script>
 const IS_TMA = !!window.Telegram?.WebApp;
 
+// Toast TMA-safe
 function showToast(msg,type="info"){
   const toast=document.createElement("div");
   toast.className="toast "+type;
   toast.textContent=msg;
   document.body.appendChild(toast);
   setTimeout(()=>toast.remove(),3000);
-}
-
-function unlockToolbar(){
-  document.getElementById("generate-btn").disabled=false;
-  showToast("Fitur dibuka!");
-}
-
-// Tunggu Monetag siap
-function monetagReady(timeout=3000){
-  return new Promise((resolve,reject)=>{
-    const start = Date.now();
-    const check = setInterval(()=>{
-      if(window.show_9256839){
-        clearInterval(check);
-        resolve(true);
-      } else if(Date.now()-start>timeout){
-        clearInterval(check);
-        reject("SDK Monetag gagal load");
-      }
-    },100);
-  });
-}
-
-// Tombol unlock
-async function onUnlockClick(){
-  try{
-    await monetagReady();
-    await new Promise((res,reject)=>{
-      window.show_9256839(()=>{
-        res();
-      });
-      setTimeout(()=>reject("Iklan gagal muncul"),5000);
-    });
-    unlockToolbar();
-  } catch(e){
-    showToast("Gagal memuat iklan, coba lagi.","error");
-  }
 }
 
 // Kirim file ke bot
@@ -103,9 +63,7 @@ async function sendFileToBot(blob, filename){
   reader.readAsDataURL(blob);
 }
 
-// Event listeners
-document.getElementById("unlock-btn").addEventListener("click", onUnlockClick);
-
+// Event Generate
 document.getElementById("generate-btn").addEventListener("click", ()=>{
   const text=document.getElementById("input-text").value||"Demo Teks";
   const blob=new Blob([text], {type:"text/plain"});
@@ -113,7 +71,7 @@ document.getElementById("generate-btn").addEventListener("click", ()=>{
   sendFileToBot(blob,"hasil.txt");
 });
 
-// Optional: Theme toggle
+// Theme toggle
 document.getElementById("theme-toggle").addEventListener("click", ()=>{
   if(document.body.style.background=="#000"){
     document.body.style.background="#fff";
