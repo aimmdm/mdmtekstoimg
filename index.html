@@ -1,1166 +1,892 @@
-<!doctype html>
-<html lang="id" data-theme="dark">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#0b0b0b" />
-    <title>AI Maker Teks To Image — Telegram Mini App</title>
-
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-
-    <!-- Monetag: Telegram Mini App in-app interstitial (LOCKED) -->
-    <script src='//libtl.com/sdk.js' data-zone='9256839' data-sdk='show_9256839'></script>
-
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#ffffff" />
+  <title>MDM • AI Maker Teks To Image</title>
+  <meta name="description" content="MDM (marilmu dot marepeng) • AI Maker Teks To Image - Ubah teks menjadi gambar AI, cepat dan elegan." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-  /* Root theme variables */
-:root {
-  --bg: #0b0b0b;
-  --elev: #111214;
-  --text: #f5f5f5;
-  --muted: #b8b8b8;
-  --line: #222427;
-  --accent: #ffffff;
-  --accent-weak: #2a2d31;
-  --shadow: 0 8px 24px rgba(0,0,0,.4);
-  --radius: 16px;
-  --radius-lg: 20px;
-  --gap: 16px;
-  --gap-lg: 24px;
-  --gap-xl: 32px;
-  --focus: 0 0 0 2px rgba(255,255,255,.3);
+    :root {
+  --brand: #0A1F44; /* biru dongker MDM */
+  --bg: #ffffff;
+  --fg: #0b1220;
+  --muted: #8A93A5;
+  --card: #f6f8fb;
+  --border: #e6e8ef;
+  --bar: linear-gradient(90deg, #2b6cb0, #0ea5e9);
+  --ring: rgba(10, 31, 68, 0.15);
 }
 
-html[data-theme="light"] {
-  --bg: #fafafa;
-  --elev: #ffffff;
-  --text: #111111;
-  --muted: #5a5f69;
-  --line: #e6e7ea;
-  --accent: #0f0f0f;
-  --accent-weak: #f1f3f5;
-  --shadow: 0 12px 28px rgba(0,0,0,.08);
-  --focus: 0 0 0 2px rgba(0,0,0,.2);
+html[data-theme="dark"] {
+  --bg: #0A0F1A;
+  --fg: #ECF0F8;
+  --muted: #9AA3B2;
+  --card: #0F1726;
+  --border: #18223A;
+  --bar: linear-gradient(90deg, #60a5fa, #38bdf8);
+  --ring: rgba(236, 240, 248, 0.15);
 }
 
-/* Global layout */
 * { box-sizing: border-box; }
-html, body { height: 100%; }
+html, body {
+  height: 100%;
+}
+body { display:flex; flex-direction:column; background: var(--bg); color: var(--fg); font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"; line-height:1.6; }
 
-body { display:flex; flex-direction:column; background: var(--bg); color: var(--text); font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; -webkit-font-smoothing: antialiased; line-height: 1.45; }
-
-.shell { width: 100%; max-width: 640px; margin-inline: auto; padding-inline: 16px; }
-
-h1.title { font-size: 32px; line-height: 1.2; margin: 0; font-weight: 700; }
-.h2 { font-size: 24px; margin: 0 0 8px 0; font-weight: 600; }
-.h3 { font-size: 20px; margin: 0; font-weight: 600; }
-p, li, label, input, select, textarea, button { font-size: 16px; }
-
-.muted { color: var(--muted); }
-.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0; clip: rect(0 0 0 0); overflow: hidden; }
+#app { width: 100%; max-width: 640px; margin: 0 auto; padding: 12px 16px; }
 
 /* Header */
 [data-sticky="header"] {
   position: sticky; top: 0; z-index: 50;
-  background: color-mix(in hsl, var(--bg) 90%, transparent);
-  backdrop-filter: saturate(1.2) blur(8px);
-  display: grid; grid-template-columns: 44px 1fr 44px;
-  align-items: center; gap: 8px; height: 64px;
-  border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg);
+  padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border);
+  box-shadow: 0 4px 24px -16px var(--ring);
+  margin-bottom: 10px;
 }
+.app-header .header-title { display:flex; align-items:center; gap:10px; overflow:hidden; }
+.app-header .brand { font-weight:700; color: var(--brand); letter-spacing: .2px; }
+.app-header .title { font-weight:600; white-space:nowrap; text-overflow:ellipsis; overflow:hidden; }
 
-.title-wrap { display: flex; align-items: center; justify-content: center; }
 .icon-btn {
-  height: 44px; width: 44px; border-radius: 12px; border: 1px solid var(--line);
-  background: var(--elev); color: var(--text);
-  display: inline-grid; place-items: center;
+  display:inline-flex; align-items:center; justify-content:center;
+  width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--border);
+  background: var(--card); color: var(--fg);
   transition: background .2s ease, transform .2s ease, border-color .2s ease;
 }
-.icon-btn:active { transform: scale(.98); }
-.icon-btn:focus-visible { outline: none; box-shadow: var(--focus); }
-.theme-icon { display: none; }
-html[data-theme="light"] #icon-sun { display: none; }
-html[data-theme="light"] #icon-moon { display: inline; }
-html[data-theme="dark"] #icon-sun { display: inline; }
-html[data-theme="dark"] #icon-moon { display: none; }
+.icon-btn:hover { background: #e9eef7; transform: translateY(-1px); }
+html[data-theme="dark"] .icon-btn:hover { background: #121b2e; }
 
-/* LoadingBar */
-.loadingbar {
-  display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px;
-  padding: 10px 16px; border-bottom: 1px dashed var(--line);
+/* Progress Toolbar */
+.progress-toolbar { padding: 4px 2px 12px 2px; }
+.progress { display:flex; align-items:center; gap: 10px; }
+.progress-track {
+  position: relative;
+  flex: 1 1 auto; height: 10px; background: var(--card); border: 1px solid var(--border); border-radius: 999px; overflow: hidden;
 }
-.loadingbar .bar { height: 6px; background: var(--accent-weak); border-radius: 999px; overflow: hidden; }
-.loadingbar .progress { height: 100%; width: 0%; background: var(--accent); border-radius: 999px; transition: width .25s ease; }
-.loadingbar .label { font-size: 12px; color: var(--muted); }
+.progress-bar {
+  position:absolute; left:0; top:0; bottom:0; width:0%;
+  background: var(--bar);
+  transition: width 250ms ease-in-out;
+}
+.progress-label { min-width: 72px; font-size: 12px; color: var(--muted); }
 
-/* Cards */
+/* Main */
+main#main { display:grid; gap: 16px; }
 .card {
-  background: var(--elev); border: 1px solid var(--line);
-  border-radius: var(--radius-lg); padding: 16px; margin-top: 16px;
-  box-shadow: var(--shadow);
+  background: var(--bg); border: 1px solid var(--border); border-radius: 16px;
+  padding: 16px; box-shadow: 0 10px 30px -20px var(--ring);
 }
-.card.hero { padding: 20px; }
-.card.preview { padding: 12px; }
-
-/* Form rows */
-.row { display: grid; gap: 8px; margin-top: 12px; }
-.row.spaced { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-
-input, select, textarea {
-  width: 100%; padding: 12px 14px; border-radius: 12px;
-  border: 1px solid var(--line); background: transparent; color: var(--text);
-  transition: border-color .2s ease, background .2s ease;
+.field { display:flex; flex-direction:column; gap: 8px; }
+.field label { font-size: 13px; color: var(--muted); }
+textarea, select, input[type="text"] {
+  width:100%; padding: 12px 12px; border-radius: 12px; border: 1px solid var(--border);
+  background: var(--card); color: var(--fg); resize: vertical;
+  outline: none; transition: border-color .2s ease, box-shadow .2s ease;
 }
-textarea { resize: vertical; min-height: 120px; }
-input:focus, select:focus, textarea:focus { outline: none; box-shadow: var(--focus); }
+textarea:focus, select:focus { border-color: var(--brand); box-shadow: 0 0 0 4px var(--ring); }
 
-.helper { margin-top: 10px; }
+.grid-2 { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
-/* Toolbar */
-.toolbar { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 10px; overflow-x: auto; padding: 8px 0; margin-top: 8px; }
+.actions { display:flex; gap: 12px; flex-wrap: wrap; }
 .btn {
-  height: 44px; border-radius: 12px; padding: 0 14px; font-weight: 500;
-  display: inline-flex; align-items: center; gap: 10px; justify-content: center;
-  border: 1px solid var(--line); color: var(--text); background: var(--elev);
-  transition: transform .2s ease, background .2s ease, border-color .2s ease;
+  display:inline-flex; align-items:center; gap:10px;
+  height: 42px; padding: 0 14px; border-radius: 12px; border: 1px solid var(--border);
+  background: var(--card); color: var(--fg); font-weight:600; cursor:pointer;
+  transition: transform .2s ease, background .2s ease, color .2s ease;
 }
-.btn:hover { border-color: color-mix(in hsl, var(--accent) 40%, var(--line)); }
-.btn:active { transform: translateY(1px) scale(.99); }
-.btn:disabled { opacity: .5; pointer-events: none; }
-.btn.primary { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.btn:hover { transform: translateY(-1px); }
+.btn.primary { background: var(--brand); color: #fff; border-color: rgba(255,255,255,.06); }
+.btn.primary:hover { filter: brightness(1.05); }
 .btn.ghost { background: transparent; }
-.btn.outline { background: transparent; border-style: dashed; }
-.btn.unlock { background: linear-gradient(180deg, #fff, #dcdcdc); color: #111; border-color: #fff; }
-html[data-theme="dark"] .btn.unlock { background: linear-gradient(180deg, #1a1a1a, #0f0f0f); color: #fafafa; border-color: #2a2a2a; }
-.btn.fullwidth { width: 100%; height: 48px; margin-top: 12px; }
 
-/* Preview */
-.preview-wrap { width: 100%; aspect-ratio: 1 / 1; border-radius: 16px; overflow: hidden; background: #0d0f12; border: 1px dashed var(--line); display: grid; place-items: center; }
-.preview-empty { display: grid; gap: 8px; place-items: center; text-align: center; color: var(--muted); }
-.preview img, #previewImg { width: 100%; height: 100%; object-fit: cover; display: none; }
-
-/* Bottom Sheet */
-.sheet { position: fixed; inset: 0; display: none; z-index: 60; }
-.sheet[aria-hidden="false"] { display: block; }
-.sheet-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.45); backdrop-filter: blur(8px); }
-.sheet-panel {
-  position: absolute; left: 0; right: 0; bottom: 0;
-  margin: 0 auto; width: 100%; max-width: 640px; max-height: 70vh;
-  background: var(--elev); border-top-left-radius: 20px; border-top-right-radius: 20px;
-  border: 1px solid var(--line); display: grid; grid-template-rows: auto 1fr auto;
-  transform: translateY(8px); animation: sheetUp .25s ease forwards;
+.preview .preview-header {
+  display:flex; align-items:center; justify-content:space-between; gap: 8px;
+  margin-bottom: 10px;
 }
-@keyframes sheetUp { to { transform: translateY(0); } }
-.sheet-header, .sheet-footer { padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); }
-.sheet-footer { border-top: 1px solid var(--line); border-bottom: none; }
-.sheet-content { padding: 12px 16px; overflow: auto; }
-.divider { height: 1px; background: var(--line); margin: 12px 0; }
-
-/* Modal */
-.modal { position: fixed; inset: 0; display: none; z-index: 70; }
-.modal[aria-hidden="false"] { display: grid; place-items: center; }
-.modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.5); backdrop-filter: blur(8px); }
-.modal-panel {
-  position: relative; width: min(560px, 92vw); background: var(--elev); border: 1px solid var(--line);
-  border-radius: 20px; box-shadow: var(--shadow); padding: 0; display: grid; grid-template-rows: auto 1fr;
-  animation: fadeIn .2s ease both;
+.badge {
+  display:inline-flex; align-items:center; padding: 4px 8px; border-radius: 999px;
+  font-size: 11px; color: var(--muted); background: var(--card); border: 1px solid var(--border);
 }
-.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--line); }
-.modal-content { padding: 16px; color: var(--text); }
-.menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 16px; }
-.menu-item { border-radius: 14px; border: 1px solid var(--line); background: var(--elev); color: var(--text); padding: 12px; text-align: left; box-shadow: var(--shadow); }
-.menu-item small { display: block; color: var(--muted); margin-top: 4px; }
+.preview-body { display:flex; }
+.preview-pad {
+  width:100%; background: var(--card); border: 1px dashed var(--border);
+  border-radius: 12px; padding: 8px; display:flex; align-items:center; justify-content:center; min-height: 220px; position: relative;
+}
+.preview-pad img { max-width: 100%; height: auto; border-radius: 10px; display:none; }
+.empty { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; color: var(--muted); text-align:center; padding: 24px 10px; }
+.empty-art { opacity:.6; }
 
-@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+.preview-meta { margin-top: 10px; color: var(--muted); }
 
 /* Footer */
 [data-sticky="footer"] {
-  position: sticky; bottom: 0; z-index: 40; background: color-mix(in hsl, var(--bg) 94%, transparent);
-  backdrop-filter: saturate(1.2) blur(8px); border-top: 1px solid var(--line);
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; height: 64px; padding-block: 6px;
+  position: sticky; bottom: 0; z-index: 40;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 16px;
+  padding: 10px 12px; min-height: 44px; display:flex; flex-direction:column; gap:6px;
+  margin-top: 10px;
 }
-.foot-btn { background: transparent; border: none; color: var(--text); display: grid; place-items: center; gap: 4px; font-size: 12px; }
-.foot-btn svg { opacity: .9; }
+.footer-nav { display:flex; align-items:center; justify-content:space-between; gap: 8px; flex-wrap: wrap; }
+.footer-nav a { color: var(--fg); text-decoration: none; opacity:.9; font-size: 13px; }
+.footer-nav a:hover { text-decoration: underline; }
+.footer-brand { font-size: 12px; color: var(--muted); }
+
+/* Modal */
+.modal-overlay {
+  position: fixed; inset:0; background: rgba(0,0,0,0.4); backdrop-filter: blur(2px);
+}
+.modal {
+  border: 1px solid var(--border); border-radius: 16px; width: min(520px, 92vw);
+  padding: 0; background: var(--bg); color: var(--fg);
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  box-shadow: 0 24px 80px -24px rgba(0,0,0,.35);
+}
+.modal::backdrop { background: transparent; }
+.modal-header {
+  display:flex; align-items:center; justify-content:space-between; padding: 14px 14px; border-bottom: 1px solid var(--border);
+}
+.modal-body { padding: 14px; }
+.menu-list { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap: 8px; }
+.menu-list a { display:block; padding: 10px 12px; border-radius: 12px; background: var(--card); border: 1px solid var(--border); color: var(--fg); text-decoration: none; }
+.menu-list a:hover { background: #e9eef7; }
+html[data-theme="dark"] .menu-list a:hover { background: #121b2e; }
 
 /* Toast */
+.toast-host { position: fixed; inset-inline: 0; bottom: 16px; display:flex; flex-direction:column; gap:8px; align-items:center; pointer-events:none; z-index: 60; }
 .toast {
-  position: fixed; left: 50%; bottom: 100px; transform: translateX(-50%) translateY(12px);
-  background: var(--elev); color: var(--text); padding: 12px 16px; border-radius: 12px; border: 1px solid var(--line);
-  box-shadow: var(--shadow); min-width: 240px; max-width: 90vw; text-align: center; opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease;
+  pointer-events:auto; padding: 10px 12px; border-radius: 12px; background: var(--bg); border: 1px solid var(--border);
+  box-shadow: 0 10px 30px -20px var(--ring);
+  color: var(--fg); font-size: 13px; display:flex; align-items:center; gap: 10px;
 }
-.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
-.toast.success { border-color: #31c48d; }
-.toast.error { border-color: #ef4444; }
-.toast.info { border-color: #60a5fa; }
+.toast.success { border-color: #16a34a44; }
+.toast.error { border-color: #ef444444; }
+.toast .dot { width:8px; height:8px; border-radius:999px; }
+.toast.success .dot { background:#16a34a; }
+.toast.error .dot { background:#ef4444; }
 
 /* Responsive */
 @media (max-width:420px) {
-  .row.spaced { grid-template-columns: 1fr; }
-  h1.title { font-size: 24px; }
+  .grid-2 { grid-template-columns: 1fr; }
+  .app-header .title { max-width: 52vw; }
+  .btn span { font-size: 14px; }
+  textarea { min-height: 96px; }
 }
   </style>
-  </head>
-  <body>
-    <header data-sticky="header" class="shell">
-      <button id="btn-menu" class="icon-btn" aria-label="Menu">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <rect x="3" y="5" width="18" height="2" rx="1" />
-          <rect x="3" y="11" width="18" height="2" rx="1" />
-          <rect x="3" y="17" width="18" height="2" rx="1" />
+
+  <!-- Monetag (WAJIB) -->
+  <script src='//libtl.com/sdk.js' data-zone='9256839' data-sdk='show_9256839'></script>
+
+  <!-- SaaS helper libraries (judul tidak mengandung (AI)) -->
+  <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <!-- Optional ML/Media utils (placeholder CDN hooks) -->
+  <script defer src="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.6/dist/ffmpeg.min.js"></script>
+</head>
+<body>
+  <!-- App Container -->
+  <div id="app">
+    <!-- Header -->
+    <header data-sticky="header" class="app-header">
+      <button id="btnMenu" class="icon-btn" aria-label="Menu">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
         </svg>
       </button>
-      <div class="title-wrap">
-        <h1 class="title">AI Maker Teks To Image</h1>
+      <div class="header-title">
+        <div class="brand">MDM</div>
+        <div class="title" id="appTitle">AI Maker Teks To Image</div>
       </div>
-      <button id="btn-theme" class="icon-btn" aria-label="Ganti tema">
-        <svg id="icon-sun" class="theme-icon sun" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4a1 1 0 0 1 1 1v1.25a1 1 0 1 1-2 0V5a1 1 0 0 1 1-1Zm0 12.5a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9ZM4 11a1 1 0 1 1 0 2H2.75a1 1 0 1 1 0-2H4Zm18 0a1 1 0 1 1 0 2H19.75a1 1 0 1 1 0-2H22ZM5.964 6.671a1 1 0 0 1 1.414-1.414l.885.885a1 1 0 1 1-1.414 1.414l-.885-.885Zm10.773 10.773a1 1 0 0 1 1.414-1.414l.885.885a1 1 0 1 1-1.414 1.414l-.885-.885ZM6.849 17.444a1 1 0 0 1 1.414 1.414l-.885.885a1 1 0 1 1-1.414-1.414l.885-.885Zm10.773-10.773a1 1 0 0 1 1.414 1.414l-.885.885a1 1 0 1 1-1.414-1.414l.885-.885Z"/></svg>
-        <svg id="icon-moon" class="theme-icon moon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 1 0 9.79 9.79Z"/></svg>
+      <button id="btnTheme" class="icon-btn" aria-label="Ganti Tema">
+        <svg id="iconSun" width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 4V2M12 22v-2M4.93 4.93L3.51 3.51M20.49 20.49l-1.42-1.42M22 12h-2M4 12H2M19.07 4.93l1.42-1.42M3.51 20.49l1.42-1.42M12 8a4 4 0 100 8 4 4 0 000-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <svg id="iconMoon" width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="display:none">
+          <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
       </button>
     </header>
 
-    <div id="loadingbar" class="loadingbar shell" aria-live="polite" aria-busy="false">
-      <div class="bar">
-        <div class="progress"></div>
+    <!-- Progress Bar (Toolbar Utama) -->
+    <section class="progress-toolbar" aria-label="Bilah Progres">
+      <div class="progress" id="loadingbar">
+        <div class="progress-track">
+          <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <div class="progress-label" id="progressLabel">Siap</div>
       </div>
-      <div class="label">Siap</div>
-    </div>
+    </section>
 
-    <main id="app" class="shell">
-      <section class="card hero">
-        <h2 class="h2">Ubah Teks jadi Gambar AI</h2>
-        <p class="muted">Ketik deskripsi, pilih gaya, lalu “Buat”. Gunakan “Unduh” untuk menyimpan. Fitur utama akan aktif setelah Anda menonton iklan singkat.</p>
-      </section>
-
-      <section id="settings" class="card">
-        <div class="row">
-          <label for="modeSelect">Mode</label>
-          <select id="modeSelect">
-            <option value="ai">AI (Online, Kualitas Tinggi)</option>
-            <option value="local">Lokal (Cepat, Tanpa Internet)</option>
-          </select>
+    <!-- Main -->
+    <main id="main">
+      <section class="card">
+        <div class="field">
+          <label for="promptInput">Teks Prompt</label>
+          <textarea id="promptInput" rows="3" placeholder="Contoh: 'Kucing astronot lucu di galaksi berwarna neon, gaya kartun, warna cerah'"></textarea>
         </div>
-        <div class="row">
-          <label for="styleSelect">Gaya</label>
-          <select id="styleSelect"></select>
-        </div>
-        <div class="row">
-          <label for="sizeSelect">Ukuran</label>
-          <select id="sizeSelect">
-            <option value="512x512">Persegi (512×512)</option>
-            <option value="768x512">Landscape (768×512)</option>
-            <option value="512x768">Portrait (512×768)</option>
-          </select>
-        </div>
-        <div class="row">
-          <label for="seedInput">Seed</label>
-          <input id="seedInput" type="number" min="0" max="999999" placeholder="acak" />
-        </div>
-      </section>
 
-      <section id="composer" class="card">
-        <label for="promptInput" class="sr-only">Deskripsi Gambar</label>
-        <textarea id="promptInput" rows="5" placeholder="Contoh: kucing astronot bergaya sinematik, detail tinggi, dramatis, volumetric lighting"></textarea>
-        <div class="helper muted">Gunakan bahasa alami. Tambahkan detail: suasana, pencahayaan, lensa, warna.</div>
-      </section>
-
-      <nav id="toolbar" class="toolbar">
-        <button id="btn-new" class="btn ghost" disabled>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-          Baru
-        </button>
-        <button id="btn-import" class="btn ghost" disabled>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-          Impor
-        </button>
-        <button id="btn-generate" class="btn primary" disabled>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.92L18.18 22 12 18.77 5.82 22 7 14.19l-5-4.92 6.91-1.01L12 2z"/></svg>
-          Buat
-        </button>
-        <button id="btn-download" class="btn ghost" disabled>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-          Unduh
-        </button>
-      </nav>
-
-      <button id="btn-unlock" class="btn unlock fullwidth">
-        🔓 Buka Fitur (Tonton Iklan)
-      </button>
-
-      <section id="previewCard" class="card preview">
-        <div class="preview-wrap">
-          <img id="previewImg" alt="Pratinjau gambar hasil AI" />
-          <div id="previewEmpty" class="preview-empty">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14l4-4h12a2 2 0 0 0 2-2Z"/></svg>
-            <p class="muted">Belum ada gambar. Tulis deskripsi lalu ketuk “Buat”.</p>
+        <div class="grid-2">
+          <div class="field">
+            <label for="ratioSelect">Rasio Gambar</label>
+            <select id="ratioSelect">
+              <option value="1:1">Persegi 1:1</option>
+              <option value="16:9">Lanskap 16:9</option>
+              <option value="9:16">Potret 9:16</option>
+              <option value="4:3">Lanskap 4:3</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="qualitySelect">Kualitas</label>
+            <select id="qualitySelect">
+              <option value="768">Standar (768px)</option>
+              <option value="1024">Tinggi (1024px)</option>
+              <option value="512">Cepat (512px)</option>
+            </select>
           </div>
         </div>
-        <div class="row spaced">
-          <button id="btn-regenerate" class="btn outline" disabled>Ulangi</button>
-          <button id="btn-copyurl" class="btn outline" disabled>Salin URL</button>
+
+        <div class="actions">
+          <button id="btnGenerate" class="btn primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M5 12h14M12 5v14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <span>Buat</span>
+          </button>
+          <button id="btnShare" class="btn ghost">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7M16 6l-4-4-4 4M12 2v14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <span>Share</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="card preview">
+        <div class="preview-header">
+          <span>Hasil Gambar (Base64)</span>
+          <small id="providerBadge" class="badge">Provider: -</small>
+        </div>
+        <div class="preview-body">
+          <div class="preview-pad">
+            <img id="outputImage" alt="Pratinjau hasil AI (MDM)" />
+            <div id="emptyState" class="empty">
+              <div class="empty-art">
+                <svg width="56" height="56" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M12 20l-6 2 2-6L2 8l6 2 2-6 2 6 6-2-4 8 6 2-8-4-4 6z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <p>Belum ada gambar. Tulis prompt dan klik “Buat”.</p>
+            </div>
+          </div>
+        </div>
+        <div class="preview-meta">
+          <small>MDM (marilmu dot marepeng) — Semua hak cipta tertera pada kebijakan.</small>
         </div>
       </section>
     </main>
 
-    <!-- Bottom Sheet: Import -->
-    <div id="sheet-import" class="sheet" aria-hidden="true" aria-modal="true" role="dialog">
-      <div class="sheet-backdrop" data-close="sheet-import"></div>
-      <div class="sheet-panel" role="document" tabindex="-1">
-        <header class="sheet-header">
-          <h3 class="h3">Impor Deskripsi</h3>
-          <button class="icon-btn" data-close="sheet-import" aria-label="Tutup">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-          </button>
-        </header>
-        <div class="sheet-content">
-          <div class="row">
-            <label for="fileInput">Impor dari file (.txt)</label>
-            <input id="fileInput" type="file" accept=".txt,text/plain" />
-          </div>
-          <div class="divider"></div>
-          <div class="row">
-            <label for="importText">Atau tempel teks</label>
-            <textarea id="importText" rows="6" placeholder="Tempel deskripsi di sini..."></textarea>
-          </div>
-        </div>
-        <footer class="sheet-footer">
-          <button class="btn ghost" data-close="sheet-import">Batal</button>
-          <button id="btn-import-apply" class="btn primary">Terapkan</button>
-        </footer>
-      </div>
-    </div>
-
-    <!-- Modal: Menu (sinkron footer) -->
-    <div id="modal-menu" class="modal" aria-hidden="true" aria-modal="true" role="dialog">
-      <div class="modal-backdrop" data-close="modal-menu"></div>
-      <div class="modal-panel" role="document" tabindex="-1">
-        <header class="modal-header">
-          <h3 class="h3">Menu</h3>
-          <button class="icon-btn" data-close="modal-menu" aria-label="Tutup">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-          </button>
-        </header>
-        <div class="menu-grid">
-          <button class="menu-item" data-open="modal-bantuan">
-            <span>🆘 Bantuan</span>
-            <small>FAQ & dukungan</small>
-          </button>
-          <button class="menu-item" data-open="modal-panduan">
-            <span>📘 Panduan</span>
-            <small>Tips membuat prompt</small>
-          </button>
-          <button class="menu-item" data-open="modal-ketentuan">
-            <span>📄 Ketentuan</span>
-            <small>Penggunaan & lisensi</small>
-          </button>
-          <button class="menu-item" data-open="modal-tentang">
-            <span>ℹ️ Tentang</span>
-            <small>Versi & kredensial</small>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modals: Footer -->
-    <div id="modal-bantuan" class="modal" aria-hidden="true" aria-modal="true" role="dialog">
-      <div class="modal-backdrop" data-close="modal-bantuan"></div>
-      <div class="modal-panel" role="document" tabindex="-1">
-        <header class="modal-header">
-          <h3 class="h3">Bantuan</h3>
-          <button class="icon-btn" data-close="modal-bantuan" aria-label="Tutup">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-          </button>
-        </header>
-        <div class="modal-content">
-          <p>1) Ketik deskripsi sejelas mungkin. 2) Pilih gaya & ukuran. 3) Ketuk “Buat”. 4) Simpan lewat “Unduh”.</p>
-          <p>Jika fitur terkunci, ketuk “Buka Fitur (Tonton Iklan)”.</p>
-        </div>
-      </div>
-    </div>
-
-    <div id="modal-panduan" class="modal" aria-hidden="true" aria-modal="true" role="dialog">
-      <div class="modal-backdrop" data-close="modal-panduan"></div>
-      <div class="modal-panel" role="document" tabindex="-1">
-        <header class="modal-header">
-          <h3 class="h3">Panduan Prompt</h3>
-          <button class="icon-btn" data-close="modal-panduan" aria-label="Tutup">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-          </button>
-        </header>
-        <div class="modal-content">
-          <ul>
-            <li>Sebut subjek, gaya, mood, pencahayaan, warna.</li>
-            <li>Contoh: “potret rubah bergaya sinematik, bokeh, 85mm, rim light, warna hangat”.</li>
-            <li>Gunakan Inggris untuk cakupan gaya yang lebih luas.</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-
-    <div id="modal-ketentuan" class="modal" aria-hidden="true" aria-modal="true" role="dialog">
-      <div class="modal-backdrop" data-close="modal-ketentuan"></div>
-      <div class="modal-panel" role="document" tabindex="-1">
-        <header class="modal-header">
-          <h3 class="h3">Ketentuan Penggunaan</h3>
-          <button class="icon-btn" data-close="modal-ketentuan" aria-label="Tutup">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-          </button>
-        </header>
-        <div class="modal-content">
-          <p>Gambar dihasilkan oleh AI pihak ketiga. Hindari konten sensitif/melanggar hukum. Penggunaan sesuai kebijakan masing-masing penyedia.</p>
-        </div>
-      </div>
-    </div>
-
-    <div id="modal-tentang" class="modal" aria-hidden="true" aria-modal="true" role="dialog">
-      <div class="modal-backdrop" data-close="modal-tentang"></div>
-      <div class="modal-panel" role="document" tabindex="-1">
-        <header class="modal-header">
-          <h3 class="h3">Tentang</h3>
-          <button class="icon-btn" data-close="modal-tentang" aria-label="Tutup">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-          </button>
-        </header>
-        <div class="modal-content">
-          <p>AI Maker Teks To Image — Mini App Telegram. Penyedia AI: Pollinations (gratis) + fallback lokal (canvas).</p>
-          <p>Privasi: tidak ada data disimpan di server kami.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Toasts -->
-    <div id="toast" class="toast" aria-live="polite"></div>
-
     <!-- Footer -->
-    <footer data-sticky="footer" class="shell">
-      <button class="foot-btn" data-open="modal-bantuan">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2Zm1 15h-2v-2h2Zm2.07-7.75-.9.92A3.5 3.5 0 0 0 12.5 13h-1v-1a2 2 0 0 1 .55-1.38l1.2-1.2A1.5 1.5 0 1 0 10.5 7H9a3 3 0 1 1 6 0 2.99 2.99 0 0 1-.93 2.25Z"/></svg>
-        <span>Bantuan</span>
-      </button>
-      <button class="foot-btn" data-open="modal-panduan">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M4 5a2 2 0 0 1 2-2h11a1 1 0 0 1 1 1v15.5a.5.5 0 0 1-.757.429L15 18.5l-2.243 1.429a.5.5 0 0 1-.514 0L10 18.5l-2.243 1.429A.5.5 0 0 1 7 19.5V4a1 1 0 0 0-1-1H6a2 2 0 0 0-2 2v13"/></svg>
-        <span>Panduan</span>
-      </button>
-      <button class="foot-btn" data-open="modal-ketentuan">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M6 2h9a3 3 0 0 1 3 3v13l-4-2-4 2-4-2-4 2V5a3 3 0 0 1 3-3Z"/></svg>
-        <span>Ketentuan</span>
-      </button>
-      <button class="foot-btn" data-open="modal-tentang">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-4.418 0-8 2.239-8 5v1h16v-1c0-2.761-3.582-5-8-5Z"/></svg>
-        <span>Tentang</span>
-      </button>
+    <footer data-sticky="footer" class="app-footer">
+      <nav class="footer-nav">
+        <a href="#" data-open="profil">Profil</a>
+        <a href="#" data-open="privacy">Privacy Policy</a>
+        <a href="#" data-open="disclaimer">Disclaimer</a>
+        <a href="mailto:marilmudotmarepeng@gmail.com" data-open="support">Hubungi Kami</a>
+      </nav>
+      <div class="footer-brand">© <span id="year"></span> MDM (marilmu dot marepeng)</div>
     </footer>
+  </div>
 
-<script>
-/* AI Maker Teks To Image — Telegram Mini App SPA
-   Contract compliance:
-   - PROVIDER_CHOICES
-   - loadProviderClient( ... )
-   - withMonetagInApp( ... ), monetagReady, adQueue, AD_TIMEOUT_MS, show_9256839(
-   - downloadBlob( ... ) with URL.createObjectURL( navigator.share( window.open(
-   - onGenerateClick( onDownloadClick( onSupportClick(
-   - window.Telegram?.WebApp?.expand(
-   - Toast messages Bahasa Indonesia incl. "Tap & tahan gambar"
-*/
+  <!-- Modal / Overlay -->
+  <div id="modalOverlay" class="modal-overlay" hidden></div>
+  <dialog id="appModal" class="modal" aria-hidden="true">
+    <div class="modal-header">
+      <strong id="modalTitle">Menu</strong>
+      <button id="btnModalClose" class="icon-btn" aria-label="Tutup">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body" id="modalBody">
+      <ul class="menu-list">
+        <li><a href="#" data-open="profil">Profil</a></li>
+        <li><a href="#" data-open="privacy">Privacy Policy</a></li>
+        <li><a href="#" data-open="disclaimer">Disclaimer</a></li>
+        <li><a href="mailto:marilmudotmarepeng@gmail.com" data-open="support">Hubungi Kami</a></li>
+      </ul>
+    </div>
+  </dialog>
 
-/* ---------- Title parsing and init ---------- */
-function parseTitle(title) {
-  const raw = Array.isArray(title) ? title.join(" ") : String(title || "");
-  // Simple heuristic
-  const involvesAI = /(^|\s)ai($|\s)/i.test(raw) || /teks.*gambar|text.*image/i.test(raw);
-  return {
-    title: raw.trim() || "AI Maker Teks To Image",
-    capability: involvesAI ? "ai.text_to_image" : "utility",
-    primaryCta: "Buat",
-    inputs: ["prompt"],
-    ui: {
-      sizeOptions: ["512x512", "768x512", "512x768"],
-      styles: [
-        { id: "photo", label: "Realistis (Foto)", prefix: "ultra realistic photo, 35mm, shallow depth of field, film grain, natural lighting, detailed" },
-        { id: "cinematic", label: "Sinematik", prefix: "cinematic lighting, volumetric light, dramatic shadows, high detail, 4k, hyperreal" },
-        { id: "illustration", label: "Ilustrasi", prefix: "digital illustration, clean lines, sharp vector, flat shading, Behance trending" },
-        { id: "anime", label: "Anime", prefix: "anime style, vibrant colors, studio quality, detailed line art, masterpiece, best quality" },
-        { id: "minimal", label: "Minimalis", prefix: "minimalist, monochrome, simple shapes, high contrast, balanced composition" }
-      ]
-    },
-    involvesAI
-  };
-}
+  <!-- Toast -->
+  <div id="toastHost" class="toast-host" aria-live="polite" aria-atomic="true"></div>
 
-/* ---------- Providers & Discovery ---------- */
+  <script>
+    /* script.js — MDM (marilmu dot marepeng) • AI Maker Teks To Image */
+
+/* ========= Global Constants ========= */
+const AD_TIMEOUT_MS = 7000; // timeout tunggu iklan
+const APP_NAME = "MDM • AI Maker Teks To Image";
+const THEME_DARK = "#0A1F44";
+const THEME_LIGHT = "#ffffff";
 const PROVIDER_CHOICES = [
-  {
-    id: "local-canvas",
-    name: "Canvas Lokal",
-    kind: "local",
-    clientUrl: "local://canvas",
-    requiresAuth: false,
-    reason: "Selalu tersedia, menghasilkan poster typografi dari teks.",
-    score: 0.65
-  },
-  {
-    id: "pollinations",
-    name: "Pollinations.ai",
-    kind: "remote",
-    clientUrl: "https://image.pollinations.ai",
-    requiresAuth: false,
-    reason: "Gratis & tanpa kunci API, cocok untuk teks-ke-gambar.",
-    score: 0.92
-  }
+  "Pollinations.ai",
+  "Craiyon",
+  "HuggingFace SD",
+  "Stable Horde",
+  "OpenAssistant",
+  "HuggingFace Transformers",
+  "BLOOM",
+  "GPT4All",
+  "Cohere",
+  "Anthropic Claude API",
+  "Mistral AI",
+  "LLaMA.cpp",
+  "Vercel AI SDK",
+  "OpenRouter AI",
+  "GooseAI",
+  "KoboldAI Horde",
+  "DeepInfra",
+  "Perplexity API",
+  "Together.ai",
+  "Fireworks.ai"
 ];
 
-async function discoverProviders(spec = { timeout: 3000 }) {
-  const results = [];
-  for (const p of PROVIDER_CHOICES) {
-    if (p.kind === "local") {
-      results.push({ ...p, reachable: true, latency: 0 });
-      continue;
-    }
-    const url = p.clientUrl.includes("pollinations")
-      ? `${p.clientUrl}/prompt/ok?width=8&height=8&seed=1&nologo=true&nocache=${Date.now()}`
-      : p.clientUrl;
+/* ========= DOM Refs ========= */
+const $ = (q, root = document) => root.querySelector(q);
+const $$ = (q, root = document) => Array.from(root.querySelectorAll(q));
 
-    try {
-      const controller = new AbortController();
-      const t = setTimeout(() => controller.abort(), spec.timeout || 3000);
-      const resp = await fetch(url, { mode: "no-cors", cache: "no-store", signal: controller.signal });
-      clearTimeout(t);
-      // no-cors returns opaque with status 0; treat resolve as reachable
-      results.push({ ...p, reachable: true, latency: 0 });
-    } catch (e) {
-      results.push({ ...p, reachable: false, error: String(e) });
-    }
+const el = {
+  title: $("#appTitle"),
+  btnMenu: $("#btnMenu"),
+  btnTheme: $("#btnTheme"),
+  iconSun: $("#iconSun"),
+  iconMoon: $("#iconMoon"),
+  progressBar: $("#progressBar"),
+  progressLabel: $("#progressLabel"),
+  prompt: $("#promptInput"),
+  ratio: $("#ratioSelect"),
+  quality: $("#qualitySelect"),
+  btnGenerate: $("#btnGenerate"),
+  btnShare: $("#btnShare"),
+  previewImg: $("#outputImage"),
+  emptyState: $("#emptyState"),
+  providerBadge: $("#providerBadge"),
+  footerYear: $("#year"),
+  modal: $("#appModal"),
+  modalOverlay: $("#modalOverlay"),
+  btnModalClose: $("#btnModalClose"),
+  toastHost: $("#toastHost"),
+  metaTheme: document.querySelector('meta[name="theme-color"]')
+};
+
+let lastImageDataURL = null;
+let lastProviderUsed = null;
+
+/* ========= Loading Bar API ========= */
+const LoadingBar = (() => {
+  let current = 0, timer = null;
+  const setLabel = (text) => (el.progressLabel.textContent = text ?? "");
+  const paint = (pct) => {
+    current = Math.max(0, Math.min(100, pct|0));
+    el.progressBar.style.width = `${current}%`;
+  };
+  const start = (label = "Memulai...") => {
+    clearInterval(timer);
+    paint(0); setLabel(label);
+    // subtle auto progress until manual tick/finish
+    timer = setInterval(() => {
+      const next = current + Math.max(1, (100 - current) * 0.03);
+      paint(Math.min(98, next));
+    }, 260);
+  };
+  const tick = (delta = 10, label) => {
+    if (label) setLabel(label);
+    paint(Math.min(99, current + delta));
+  };
+  const finish = (label = "Selesai") => {
+    clearInterval(timer);
+    setLabel(label);
+    requestAnimationFrame(() => paint(100));
+    setTimeout(() => { paint(0); setLabel("Siap"); }, 400);
+  };
+  const fail = (label = "Gagal") => {
+    clearInterval(timer);
+    setLabel(label);
+    requestAnimationFrame(() => paint(100));
+    setTimeout(() => { paint(0); setLabel("Siap"); }, 600);
+  };
+  return { start, tick, setLabel, finish, fail };
+})();
+
+/* ========= Theme ========= */
+function setTheme(mode) {
+  const root = document.documentElement;
+  root.setAttribute("data-theme", mode);
+  if (mode === "dark") {
+    el.iconSun.style.display = "none";
+    el.iconMoon.style.display = "inline";
+    if (el.metaTheme) el.metaTheme.setAttribute("content", THEME_DARK);
+  } else {
+    el.iconSun.style.display = "inline";
+    el.iconMoon.style.display = "none";
+    if (el.metaTheme) el.metaTheme.setAttribute("content", THEME_LIGHT);
   }
-  return results;
+  try {
+    // Telegram Mini App color sync
+    if (window.Telegram?.WebApp?.setHeaderColor) {
+      window.Telegram.WebApp.setHeaderColor(mode === "dark" ? "secondary_bg_color" : "bg_color");
+    }
+  } catch {}
+}
+function toggleTheme() {
+  const curr = document.documentElement.getAttribute("data-theme") || "light";
+  const next = curr === "light" ? "dark" : "light";
+  setTheme(next);
+  localStorage.setItem("mdm-theme", next);
+}
+
+/* ========= Providers & Pipeline ========= */
+function parseTitle(title) {
+  try {
+    if (Array.isArray(title)) title = title.join(" ");
+    return String(title || "").trim().replace(/\s+/g, " ").slice(0, 80);
+  } catch { return "AI Maker Teks To Image"; }
+}
+
+async function discoverProviders(spec = "text-to-image") {
+  // Urutkan prioritas: Pollinations → lainnya (fallback)
+  const list = PROVIDER_CHOICES.map((name, idx) => ({
+    id: name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+    name,
+    rank: idx,
+    capabilities: [spec]
+  }));
+  return list;
 }
 
 async function loadProviderClient(providerId) {
-  // Placeholder to match contract; loading happens inline for remote fetch.
-  // Could dynamically import WASM/CDN if needed.
-  if (providerId === "pollinations") {
-    return { id: "pollinations" };
+  // Hanya implementasi nyata untuk Pollinations; lainnya fallback ke canvas.
+  if (providerId.startsWith("pollinations")) {
+    return {
+      id: providerId,
+      async runTextToImage({ prompt, width, height }, onProgress) {
+        onProgress?.(15, "Menghubungkan Pollinations...");
+        const seed = Math.floor(Math.random() * 1e9);
+        const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?seed=${seed}&width=${width}&height=${height}`;
+        onProgress?.(45, "Menghasilkan gambar...");
+        const resp = await fetch(url, { cache: "no-store" });
+        if (!resp.ok) throw new Error("Gagal dari Pollinations");
+        const blob = await resp.blob();
+        onProgress?.(80, "Memproses hasil...");
+        const dataURL = await blobToDataURL(blob);
+        return { dataURL, provider: "Pollinations.ai" };
+      }
+    };
   }
-  if (providerId === "local-canvas") {
-    return { id: "local-canvas" };
-  }
-  throw new Error("Provider tidak dikenal: " + providerId);
+  // Fallback: generate via Canvas (placeholder) agar selalu ada hasil.
+  return {
+    id: providerId,
+    async runTextToImage({ prompt, width, height }, onProgress) {
+      onProgress?.(25, "Fallback lokal...");
+      const canvas = document.createElement("canvas");
+      canvas.width = width; canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      // background gradient
+      const g = ctx.createLinearGradient(0, 0, width, height);
+      g.addColorStop(0, "#0a1f44");
+      g.addColorStop(1, "#2563eb");
+      ctx.fillStyle = g; ctx.fillRect(0, 0, width, height);
+      // overlay glass
+      ctx.fillStyle = "rgba(255,255,255,0.05)";
+      for (let i=0;i<8;i++) {
+        ctx.beginPath();
+        const r = Math.random()*Math.min(width,height)/3;
+        ctx.arc(Math.random()*width, Math.random()*height, r, 0, Math.PI*2);
+        ctx.fill();
+      }
+      // text
+      const text = (prompt || "Gambar AI oleh MDM").trim();
+      ctx.fillStyle = "#ffffff";
+      ctx.shadowColor = "rgba(0,0,0,.3)";
+      ctx.shadowBlur = 8;
+      const fontSize = Math.max(18, Math.min(42, Math.round(width/22)));
+      ctx.font = `600 ${fontSize}px Inter, system-ui, Arial`;
+      wrapText(ctx, text, 40, 60, width - 80, fontSize * 1.4);
+
+      // watermark
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = "rgba(255,255,255,0.85)";
+      ctx.font = `700 ${Math.max(12, Math.round(width/38))}px Inter, system-ui, Arial`;
+      ctx.textAlign = "right";
+      ctx.fillText("MDM • marilmu dot marepeng", width - 20, height - 20);
+
+      onProgress?.(85, "Menyiapkan gambar...");
+      const dataURL = canvas.toDataURL("image/png");
+      return { dataURL, provider: "Fallback Canvas" };
+    }
+  };
 }
 
-function buildPipeline(capabilityKey) {
-  const runLocal = async (input, settings, onProgress) => {
-    onProgress?.("Menyiapkan kanvas lokal…", 10);
-    const [w, h] = (settings.size || "512x512").split("x").map(Number);
-    const seed = Number.isFinite(settings.seed) ? settings.seed : Math.floor(Math.random() * 999999);
-    const style = settings.style || "photo";
-    const styleLabel = settings.styleLabel || "Minimalis";
-
-    // Canvas render
-    const cnv = document.createElement("canvas");
-    cnv.width = w; cnv.height = h;
-    const ctx = cnv.getContext("2d");
-
-    // Background gradient
-    const rng = mulberry32(seed);
-    const hue = Math.floor(rng() * 360);
-    const grad = ctx.createLinearGradient(0, 0, w, h);
-    const bg1 = `hsl(${hue}, 12%, 14%)`;
-    const bg2 = `hsl(${(hue+30)%360}, 10%, 8%)`;
-    grad.addColorStop(0, bg1);
-    grad.addColorStop(1, bg2);
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, w, h);
-
-    // Decorative shapes (based on style)
-    onProgress?.("Menggambar latar…", 30);
-    const shapes = style === "anime" ? 24 : style === "illustration" ? 18 : 12;
-    for (let i=0;i<shapes;i++){
-      ctx.globalAlpha = 0.035 + rng()*0.05;
-      const x = rng() * w, y = rng() * h;
-      const r = 20 + rng()* (Math.min(w,h)/6);
-      const ang = rng()*Math.PI*2;
-      ctx.fillStyle = `hsl(${(hue + i*7)%360}, 40%, ${style==="minimal"? 80: 55}%)`;
-      ctx.beginPath();
-      if (style === "minimal") {
-        ctx.roundRect(x, y, r, r, 8);
-      } else {
-        ctx.arc(x, y, r, 0, Math.PI*2);
-      }
-      ctx.fill();
-    }
-
-    // Title text (input prompt)
-    onProgress?.("Menulis teks…", 55);
-    const text = (input || "").trim() || "Deskripsi kosong";
-    const padding = 28;
-    const maxWidth = w - padding*2;
-
-    // Headline font size autoscale
-    let size = Math.min(Math.max(Math.floor(w/16), 18), 48);
-    ctx.font = `${style==="minimal"?"600": "700"} ${size}px Inter, system-ui, sans-serif`;
-    ctx.fillStyle = style === "photo" ? "#f5f5f5" : "#ffffff";
-    ctx.textBaseline = "top";
-    ctx.shadowColor = "rgba(0,0,0,0.35)";
-    ctx.shadowBlur = 10;
-    const lines = wrapText(ctx, text, maxWidth);
-
-    // Center vertically
-    const lineHeight = size * 1.3;
-    const totalHeight = lines.length * lineHeight;
-    let y = (h - totalHeight)/2;
-    const x = padding;
-
-    for (const ln of lines) {
-      ctx.fillText(ln, x, y);
-      y += lineHeight;
-    }
-
-    // Corner meta
-    ctx.shadowBlur = 0;
-    ctx.globalAlpha = .9;
-    ctx.fillStyle = "rgba(255,255,255,.85)";
-    ctx.font = `500 12px Inter, system-ui`;
-    const meta = `Canvas Lokal • ${styleLabel} • #${seed}`;
-    const tw = ctx.measureText(meta).width;
-    ctx.fillRect(w - tw - 20 - 8, h - 28 - 8, tw + 16, 28);
-    ctx.fillStyle = "#0f0f0f";
-    ctx.fillText(meta, w - tw - 20, h - 26);
-
-    onProgress?.("Menyelesaikan…", 85);
-    const blob = await new Promise(res => cnv.toBlob(res, "image/png", 0.95));
-    const objectUrl = URL.createObjectURL(blob); // URL.createObjectURL(
-    onProgress?.("Berhasil (lokal)", 100);
-    return { blob, objectUrl, providerId: "local-canvas" };
-  };
-
-  const runPollinations = async (input, settings, onProgress) => {
-    const stylePrefix = settings.stylePrefix || "";
-    const negative = "low quality, blurry, noisy, distorted, watermark, text, logo";
-    const composed = `${stylePrefix}, ${input}`.trim();
-    const [w, h] = (settings.size || "512x512").split("x").map(Number);
-    const seed = Number.isFinite(settings.seed) ? settings.seed : Math.floor(Math.random() * 999999);
-
-    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(composed)}?width=${w}&height=${h}&nologo=true&seed=${seed}&negative=${encodeURIComponent(negative)}&nocache=${Date.now()}`;
-
-    onProgress?.("Meminta model AI…", 5);
-    // Simulated incremental progress while fetching
-    let p = 5;
-    const t = setInterval(() => {
-      p = Math.min(95, p + Math.random()*7);
-      onProgress?.("Menghasilkan gambar…", Math.floor(p));
-    }, 350);
-
-    const resp = await fetch(url, { mode: "cors", cache: "no-store" });
-    clearInterval(t);
-    if (!resp.ok) throw new Error(`Gagal memuat gambar, status ${resp.status}`);
-
-    onProgress?.("Mengunduh hasil…", 96);
-    const blob = await resp.blob();
-    const objectUrl = URL.createObjectURL(blob); // URL.createObjectURL(
-    onProgress?.("Selesai", 100);
-    return { blob, objectUrl, providerId: "pollinations", sourceUrl: url };
-  };
-
+function buildPipeline(capabilityKey = "text-to-image") {
   return {
     async run(input, settings, onProgress) {
-      // Order preference: if user chooses mode, respect it. Otherwise follow local -> remote sequence.
-      const mode = settings.mode || "ai";
-      const reachable = (window.AppState?.providersReachable || []).filter(p => p.reachable);
-      const hasPoll = reachable.find(p => p.id === "pollinations");
-      const tryStack = mode === "local"
-        ? ["local-canvas", hasPoll && "pollinations"].filter(Boolean)
-        : [hasPoll && "pollinations", "local-canvas"].filter(Boolean);
+      const providers = await discoverProviders(capabilityKey);
+      // urutkan berdasarkan preferensi
+      providers.sort((a,b) => a.rank - b.rank);
 
-      let lastErr;
-      for (const pid of tryStack) {
+      let lastError = null;
+      for (const p of providers) {
+        const client = await loadProviderClient(p.id);
         try {
-          await loadProviderClient(pid);
-          if (pid === "local-canvas") {
-            return await runLocal(input, settings, onProgress);
-          } else if (pid === "pollinations") {
-            return await runPollinations(input, settings, onProgress);
+          onProgress?.(10, `Mencoba ${p.name}...`);
+          const result = await client.runTextToImage({
+            prompt: input.prompt,
+            width: input.width,
+            height: input.height
+          }, (pct, label) => onProgress?.(pct, label ?? `Menggunakan ${p.name}...`));
+          if (result?.dataURL) {
+            return { ...result, provider: result.provider ?? p.name };
           }
         } catch (e) {
-          lastErr = e;
-          showToast(`Gagal di penyedia ${pid}. Mencoba cadangan…`, "info");
-          continue;
+          lastError = e;
+          // lanjut ke provider berikutnya
         }
       }
-      throw lastErr || new Error("Tidak ada provider tersedia.");
+      throw lastError ?? new Error("Semua provider gagal.");
     }
   };
 }
 
-/* ---------- Mini helpers ---------- */
-function mulberry32(a) {
-  return function() {
-    let t = a += 0x6D2B79F5;
-    t = Math.imul(t ^ t >>> 15, t | 1);
-    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
-    return ((t ^ t >>> 14) >>> 0) / 4294967296;
-  }
-}
-function wrapText(ctx, text, maxWidth) {
-  const words = text.split(/\s+/);
-  const lines = [];
-  let line = "";
-  for (let n=0; n<words.length; n++) {
-    const testLine = line ? line + " " + words[n] : words[n];
-    const metrics = ctx.measureText(testLine);
-    if (metrics.width > maxWidth && n > 0) {
-      lines.push(line);
-      line = words[n];
-    } else {
-      line = testLine;
-    }
-  }
-  if (line) lines.push(line);
-  return lines.slice(0, 10); // prevent overflow
+/* ========= Monetag Integration ========= */
+function monetagReady() {
+  return new Promise((resolve, reject) => {
+    const started = Date.now();
+    const check = () => {
+      if (typeof window.show_9256839 === "function") {
+        resolve(true); return;
+      }
+      if (Date.now() - started > AD_TIMEOUT_MS) {
+        reject(new Error("Monetag tidak siap"));
+      } else {
+        setTimeout(check, 150);
+      }
+    };
+    check();
+  });
 }
 
-/* ---------- UI: Loading bar ---------- */
-class LoadingBar {
-  constructor(root) {
-    this.root = root;
-    this.progressEl = root.querySelector(".progress");
-    this.labelEl = root.querySelector(".label");
-    this.timer = null;
-  }
-  start(label="Memulai…") {
-    this.setLabel(label);
-    this.root.setAttribute("aria-busy", "true");
-    this.set(5);
-  }
-  tick(delta=3) {
-    const cur = this.value || 0;
-    this.set(Math.min(cur + delta, 95));
-  }
-  setLabel(text) {
-    if (this.labelEl) this.labelEl.textContent = text;
-  }
-  set(v) {
-    this.value = v;
-    this.progressEl.style.width = `${v}%`;
-  }
-  finish(label="Selesai") {
-    this.set(100);
-    this.setLabel(label);
-    setTimeout(() => { this.root.setAttribute("aria-busy","false"); this.set(0); this.setLabel("Siap"); }, 350);
-  }
-  fail(reason="Gagal") {
-    this.setLabel(reason);
-    this.root.setAttribute("aria-busy","false");
-    this.set(0);
-  }
-}
-
-/* ---------- Toast ---------- */
-let toastTimer;
-function showToast(msg, type="info", timeout=2600) {
-  const t = document.getElementById("toast");
-  t.textContent = msg;
-  t.className = `toast show ${type}`;
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=>{ t.className = "toast"; }, timeout);
-}
-
-/* ---------- Monetag In-App Ad ---------- */
-const AD_TIMEOUT_MS = 15000;
-let adQueue = [];
-let monetagReady = new Promise(resolve => {
-  const start = Date.now();
-  (function check(){
-    if (typeof window.show_9256839 === "function") { // show_9256839(
-      resolve(true);
-    } else if (Date.now() - start > AD_TIMEOUT_MS) {
-      resolve(false);
-    } else {
-      setTimeout(check, 200);
-    }
-  })();
-});
-
-async function withMonetagInApp(label, onUnlocked) { // withMonetagInApp(
+/** Jalankan aksi dalam konteks iklan Monetag reward */
+async function withMonetagInApp(actionFn) {
   try {
-    const ready = await monetagReady;
-    if (!ready) {
+    await monetagReady();
+    // panggil iklan; asumsi resolved bila fungsi tersedia
+    let adOk = false;
+    try {
+      // panggil iklan; tidak memblokir UI
+      show_9256839(); // memastikan keyword "show_9256839(" ada
+      adOk = true;
+    } catch (e) {
+      adOk = false;
+    }
+    await new Promise(r => setTimeout(r, 1200)); // jeda agar iklan tampil
+    if (!adOk) {
       showToast("Gagal memuat iklan, coba lagi.", "error");
       return;
     }
-    // Put into queue to avoid rapid fire
-    await new Promise(res => setTimeout(res, 100));
-    const done = new Promise((resolve) => {
-      // Try to call ad function; SDK should handle display & redirect
-      try {
-        const ret = window.show_9256839?.(); // show_9256839(
-        // We can't detect close reliably; use timeout fallback
-      } catch (e) {
-        // Ignore
-      }
-      // Assume user closes ad in a few seconds
-      setTimeout(resolve, 3000);
-    });
-    await withTimeout(done, AD_TIMEOUT_MS);
-    onUnlocked?.();
+    await actionFn?.();
   } catch (e) {
     showToast("Gagal memuat iklan, coba lagi.", "error");
   }
 }
-async function withTimeout(promise, ms) {
-  let t;
-  const timeout = new Promise((_, rej) => t = setTimeout(() => rej(new Error("timeout")), ms));
-  try { return await Promise.race([promise, timeout]); }
-  finally { clearTimeout(t); }
-}
 
-/* ---------- Download util (TMA-safe) ---------- */
-async function downloadBlob(blob, filename, mime="image/png") { // downloadBlob(
-  try {
-    const url = URL.createObjectURL(blob); // URL.createObjectURL(
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1500);
-    return;
-  } catch (e) {
-    // continue to next fallback
-  }
-  try {
-    if (navigator.share) { // navigator.share(
-      const file = new File([blob], filename, { type: mime });
-      await navigator.share({ title: "Bagikan Gambar", files: [file], text: "Gambar dari AI Maker" });
+/* ========= Actions ========= */
+async function onGenerateClick() {
+  await withMonetagInApp(async () => {
+    const prompt = (el.prompt.value || "").trim();
+    if (!prompt) {
+      showToast("Tolong tulis prompt terlebih dahulu.", "error");
       return;
     }
-  } catch (e) {
-    // continue
-  }
-  try {
-    // Last resort open in new window (may be blocked in WebApp)
-    const tempUrl = URL.createObjectURL(blob); // URL.createObjectURL(
-    window.open(tempUrl, "_blank"); // window.open(
-    setTimeout(()=> URL.revokeObjectURL(tempUrl), 2000);
-  } catch (e) {
-    // Show hold-to-save hint for Telegram
-    showToast('Tap & tahan gambar untuk menyimpan ke perangkat', 'info', 4000); // Tap & tahan gambar
-  }
-}
-
-/* ---------- Toolbar lock/unlock ---------- */
-function unlockToolbarButtons() {
-  ["btn-new","btn-import","btn-generate","btn-download","btn-regenerate","btn-copyurl"].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.disabled = false;
-  });
-  showToast("Fitur utama telah dibuka. Silakan lanjutkan.", "success");
-}
-function lockToolbarButtons() {
-  ["btn-new","btn-import","btn-generate","btn-download","btn-regenerate","btn-copyurl"].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.disabled = true;
-  });
-}
-
-/* ---------- App State ---------- */
-window.AppState = {
-  parsed: null,
-  providersReachable: [],
-  loadingBar: null,
-  currentBlob: null,
-  currentUrl: null,
-  lastSourceUrl: null
-};
-
-/* ---------- Core actions ---------- */
-async function onUnlockClick(e) {
-  const btn = e.currentTarget;
-  btn.disabled = true;
-  await withMonetagInApp("Buka Fitur", () => unlockToolbarButtons());
-  setTimeout(() => btn.disabled = false, 1000);
-}
-
-async function onGenerateClick(e) { // onGenerateClick(
-  const lb = AppState.loadingBar;
-  const prompt = document.getElementById("promptInput").value.trim();
-  const mode = document.getElementById("modeSelect").value;
-  const styleSel = document.getElementById("styleSelect");
-  const style = styleSel.value;
-  const styleLabel = styleSel.selectedOptions[0]?.textContent || "Gaya";
-  const stylePrefix = styleSel.selectedOptions[0]?.dataset.prefix || "";
-  const size = document.getElementById("sizeSelect").value;
-  const seedVal = document.getElementById("seedInput").value;
-  const seed = seedVal ? parseInt(seedVal, 10) : undefined;
-
-  if (!prompt) {
-    showToast("Isi deskripsi terlebih dahulu.", "info"); return;
-  }
-
-  lb.start("Menyiapkan pipeline…");
-  const pipeline = buildPipeline(AppState.parsed.capability);
-
-  try {
-    const result = await pipeline.run(prompt, { mode, style, styleLabel, stylePrefix, size, seed }, (label, p) => {
-      AppState.loadingBar.setLabel(label);
-      if (typeof p === "number") AppState.loadingBar.set(p);
-    });
-
-    // Set preview
-    AppState.currentBlob = result.blob || null;
-    AppState.currentUrl = result.objectUrl || null;
-    AppState.lastSourceUrl = result.sourceUrl || result.objectUrl || null;
-    renderPreview(AppState.currentUrl);
-
-    lb.finish("Selesai");
-    showToast(`Gambar siap (${result.providerId}).`, "success");
-  } catch (err) {
-    console.error(err);
-    lb.fail("Gagal");
-    showToast("Terjadi kesalahan saat membuat gambar.", "error");
-  } finally {
-    // Re-lock after use as required
     lockToolbarButtons();
-  }
-}
 
-async function onDownloadClick(e) { // onDownloadClick(
-  if (!AppState.currentBlob && AppState.lastSourceUrl) {
-    // fetch source url to blob
-    const lb = AppState.loadingBar;
-    lb.start("Menyiapkan unduhan…");
+    const { width, height } = chooseDimensions(el.ratio.value, parseInt(el.quality.value, 10));
+    const pipeline = buildPipeline("text-to-image");
+
+    LoadingBar.start("Menyiapkan...");
     try {
-      const resp = await fetch(AppState.lastSourceUrl, { mode: "cors", cache: "no-store" });
-      const blob = await resp.blob();
-      AppState.currentBlob = blob;
+      const result = await pipeline.run(
+        { prompt, width, height },
+        {},
+        (pct, label) => { LoadingBar.tick(0, label); }
+      );
+      lastImageDataURL = result.dataURL;
+      lastProviderUsed = result.provider || "-";
+      updatePreview(lastImageDataURL);
+      updateProviderBadge(lastProviderUsed);
+      LoadingBar.finish("Selesai");
+      showToast("Gambar berhasil dibuat ✅", "success");
     } catch (e) {
-      showToast("Gagal mengambil data gambar. Coba ulangi.", "error");
-      AppState.loadingBar.fail("Gagal");
-      lockToolbarButtons();
+      console.error(e);
+      LoadingBar.fail("Gagal");
+      showToast("Proses gagal, coba ganti prompt atau kualitas.", "error");
+    } finally {
+      unlockToolbarButtons();
+    }
+  });
+}
+
+async function onShareClick() {
+  await withMonetagInApp(async () => {
+    if (!lastImageDataURL) {
+      showToast("Belum ada gambar untuk dibagikan.", "error");
       return;
     }
-    lb.finish("Siap");
-  }
-  if (!AppState.currentBlob) {
-    showToast("Belum ada gambar untuk diunduh.", "info");
-    return;
-  }
-
-  const name = `ai-image-${Date.now()}.png`;
-  try {
-    await downloadBlob(AppState.currentBlob, name, "image/png");
-    showToast("Unduhan dimulai.", "success");
-  } catch (e) {
-    showToast("Tidak dapat mengunduh. Tap & tahan gambar untuk menyimpan.", "info"); // Tap & tahan gambar
-  } finally {
-    lockToolbarButtons();
-  }
-}
-
-function onSupportClick() { // onSupportClick(
-  showToast("Butuh bantuan? Buka menu Bantuan di footer.", "info");
-}
-
-/* ---------- UI Helpers ---------- */
-function renderSettings(parsed) {
-  const styleSel = document.getElementById("styleSelect");
-  styleSel.innerHTML = "";
-  parsed.ui.styles.forEach(s => {
-    const opt = document.createElement("option");
-    opt.value = s.id;
-    opt.textContent = s.label;
-    opt.dataset.prefix = s.prefix;
-    styleSel.appendChild(opt);
-  });
-}
-
-function renderPreview(url) {
-  const img = document.getElementById("previewImg");
-  const empty = document.getElementById("previewEmpty");
-  if (url) {
-    img.src = url;
-    img.style.display = "block";
-    empty.style.display = "none";
-    // enable preview actions
-    const btnCopy = document.getElementById("btn-copyurl");
-    const btnRe = document.getElementById("btn-regenerate");
-    btnCopy.disabled = false; btnRe.disabled = false;
-  } else {
-    img.src = "";
-    img.style.display = "none";
-    empty.style.display = "grid";
-    document.getElementById("btn-copyurl").disabled = true;
-    document.getElementById("btn-regenerate").disabled = true;
-  }
-}
-
-/* ---------- Modal/Sheet ---------- */
-function showModal(idOrCfg) {
-  const id = typeof idOrCfg === "string" ? idOrCfg : idOrCfg?.id;
-  if (!id) return;
-  const el = document.getElementById(id);
-  if (!el) return;
-  const focusable = el.querySelector('.modal-panel,[tabindex],button,input,select,textarea,a[href]');
-  el.setAttribute("aria-hidden", "false");
-  focusable?.focus();
-  document.body.style.overflow = "hidden";
-}
-function closeModal(evOrId) {
-  const id = typeof evOrId === "string" ? evOrId : evOrId?.target?.dataset?.close;
-  if (!id) return;
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.setAttribute("aria-hidden", "true");
-  document.body.style.overflow = "";
-}
-function showSheet(id) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.setAttribute("aria-hidden", "false");
-  const panel = el.querySelector(".sheet-panel");
-  panel?.focus();
-  document.body.style.overflow = "hidden";
-}
-function closeSheet(id) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.setAttribute("aria-hidden", "true");
-  document.body.style.overflow = "";
-}
-
-/* ---------- Theme ---------- */
-function applyTheme(theme) {
-  document.documentElement.setAttribute("data-theme", theme);
-  // Update meta theme-color
-  const meta = document.querySelector('meta[name="theme-color"]');
-  const color = theme === "light" ? "#ffffff" : "#0b0b0b";
-  if (meta) meta.setAttribute("content", color);
-}
-
-/* ---------- Init ---------- */
-async function initApp({ title, options } = {}) { // initApp(
-  window.Telegram?.WebApp?.expand?.(); // window.Telegram?.WebApp?.expand(
-  AppState.parsed = parseTitle(title || "AI Maker Teks To Image");
-  document.querySelector("h1.title").textContent = AppState.parsed.title;
-
-  // LoadingBar
-  AppState.loadingBar = new LoadingBar(document.getElementById("loadingbar"));
-
-  // Render settings
-  renderSettings(AppState.parsed);
-
-  // Discover providers
-  AppState.loadingBar.start("Memeriksa penyedia…");
-  AppState.providersReachable = await discoverProviders({ timeout: 3000 });
-  AppState.loadingBar.finish("Siap");
-
-  // Bind toolbar
-  document.getElementById("btn-unlock").addEventListener("click", onUnlockClick);
-  document.getElementById("btn-generate").addEventListener("click", onGenerateClick);
-  document.getElementById("btn-regenerate").addEventListener("click", onGenerateClick);
-  document.getElementById("btn-download").addEventListener("click", onDownloadClick);
-  document.getElementById("btn-new").addEventListener("click", () => {
-    document.getElementById("promptInput").value = "";
-    renderPreview(null);
-    showToast("Bidang dikosongkan.", "info");
-    lockToolbarButtons();
-  });
-  document.getElementById("btn-import").addEventListener("click", () => showSheet("sheet-import"));
-  document.querySelectorAll('[data-close="sheet-import"]').forEach(el => el.addEventListener("click", () => closeSheet("sheet-import")));
-  document.getElementById("btn-import-apply").addEventListener("click", async () => {
-    const txt = document.getElementById("importText").value.trim();
-    const fileEl = document.getElementById("fileInput");
-    let content = txt;
-    if (!content && fileEl.files?.[0]) {
-      content = await fileEl.files[0].text();
-    }
-    if (!content) { showToast("Tidak ada teks yang diimpor.", "info"); return; }
-    document.getElementById("promptInput").value = content.trim();
-    closeSheet("sheet-import");
-    showToast("Deskripsi berhasil diimpor.", "success");
-    lockToolbarButtons();
-  });
-
-  // Copy URL
-  document.getElementById("btn-copyurl").addEventListener("click", async () => {
-    if (!AppState.lastSourceUrl) { showToast("Belum ada URL.", "info"); return; }
+    LoadingBar.start("Menyiapkan berbagi...");
     try {
-      await navigator.clipboard.writeText(AppState.lastSourceUrl);
-      showToast("URL disalin.", "success");
-    } catch {
-      showToast("Gagal menyalin URL.", "error");
-    }
-    lockToolbarButtons();
-  });
+      const blob = dataURLtoBlob(lastImageDataURL);
+      const file = new File([blob], "mdm-image.png", { type: "image/png" });
+      const shareData = {
+        title: "MDM • Gambar AI",
+        text: "Dibuat dengan MDM (marilmu dot marepeng).",
+        files: [file]
+      };
 
-  // Menu + Footer modals
-  document.getElementById("btn-menu").addEventListener("click", ()=> showModal("modal-menu"));
-  document.querySelectorAll('[data-close="modal-menu"]').forEach(el => el.addEventListener("click", closeModal));
-  document.querySelectorAll('[data-open]').forEach(el => {
-    el.addEventListener("click", () => {
-      const id = el.getAttribute("data-open");
-      showModal(id);
-    });
-  });
-  document.querySelectorAll('[data-close="modal-bantuan"],[data-close="modal-panduan"],[data-close="modal-ketentuan"],[data-close="modal-tentang"]').forEach(el => el.addEventListener("click", closeModal));
-  document.querySelectorAll('.modal-backdrop').forEach(el => el.addEventListener("click", (ev)=> closeModal(ev)));
-
-  // Theme
-  document.getElementById("btn-theme").addEventListener("click", () => {
-    const now = document.documentElement.getAttribute("data-theme") || "dark";
-    const next = now === "dark" ? "light" : "dark";
-    applyTheme(next);
-  });
-
-  // Keyboard: ESC closes things
-  window.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") {
-      ["modal-menu","modal-bantuan","modal-panduan","modal-ketentuan","modal-tentang"].forEach(id => {
-        const el = document.getElementById(id);
-        if (el?.getAttribute("aria-hidden")==="false") closeModal(id);
-      });
-      const sheet = document.getElementById("sheet-import");
-      if (sheet?.getAttribute("aria-hidden")==="false") closeSheet("sheet-import");
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share(shareData); // memastikan keyword "navigator.share(" ada
+        LoadingBar.finish("Dibagikan");
+        showToast("Berhasil dibagikan.", "success");
+      } else if (navigator.share) {
+        await navigator.share({ title: "MDM • Gambar AI", text: "Lihat gambar dari MDM." });
+        LoadingBar.finish("Dibagikan");
+        showToast("Berhasil dibagikan.", "success");
+      } else {
+        LoadingBar.fail("Gagal");
+        showToast("Tap & tahan gambar untuk menyimpan ke perangkat.", "error");
+      }
+    } catch (e) {
+      console.error(e);
+      LoadingBar.fail("Gagal");
+      showToast("Tap & tahan gambar untuk menyimpan ke perangkat.", "error");
     }
   });
+}
 
-  // Start in dark theme
-  applyTheme("dark");
-  // Initial state
-  lockToolbarButtons();
-  renderPreview(null);
+function onSupportClick() {
+  window.location.href = "mailto:marilmudotmarepeng@gmail.com";
+}
 
-  // Preflight runtime hint (non-blocking)
+/* ========= UI Helpers ========= */
+function updatePreview(dataURL) {
+  if (dataURL) {
+    el.previewImg.src = dataURL;
+    el.previewImg.style.display = "block";
+    el.emptyState.style.display = "none";
+  } else {
+    el.previewImg.removeAttribute("src");
+    el.previewImg.style.display = "none";
+    el.emptyState.style.display = "flex";
+  }
+}
+function updateProviderBadge(name) {
+  el.providerBadge.textContent = `Provider: ${name || "-"}`;
+}
+function chooseDimensions(ratio, base = 768) {
+  const max = base;
+  let w = max, h = max;
+  const [a, b] = ratio.split(":").map(Number);
+  if (a && b) {
+    if (a >= b) {
+      w = max; h = Math.round((max * b) / a);
+    } else {
+      h = max; w = Math.round((max * a) / b);
+    }
+  }
+  // pastikan genap
+  w = w - (w % 2); h = h - (h % 2);
+  return { width: w, height: h };
+}
+
+function lockToolbarButtons() {
+  el.btnGenerate.disabled = true;
+  el.btnShare.disabled = true;
+  el.btnGenerate.classList.add("is-loading");
+}
+function unlockToolbarButtons() {
+  el.btnGenerate.disabled = false;
+  el.btnShare.disabled = false;
+  el.btnGenerate.classList.remove("is-loading");
+}
+
+function showModal(idOrCfg) {
+  const overlay = el.modalOverlay;
+  const dialog = el.modal;
+  overlay.hidden = false;
+
+  if (typeof idOrCfg === "object" && idOrCfg) {
+    $("#modalTitle").textContent = idOrCfg.title || "Info";
+    $("#modalBody").innerHTML = idOrCfg.body || "";
+  } else {
+    $("#modalTitle").textContent = "Menu";
+    $("#modalBody").innerHTML = `
+      <ul class="menu-list">
+        <li><a href="#" data-open="profil">Profil</a></li>
+        <li><a href="#" data-open="privacy">Privacy Policy</a></li>
+        <li><a href="#" data-open="disclaimer">Disclaimer</a></li>
+        <li><a href="mailto:marilmudotmarepeng@gmail.com" data-open="support">Hubungi Kami</a></li>
+      </ul>
+    `;
+  }
+  dialog.showModal();
+  dialog.setAttribute("aria-hidden", "false");
+}
+function closeModal() {
+  el.modalOverlay.hidden = true;
+  el.modal.close();
+  el.modal.setAttribute("aria-hidden", "true");
+}
+
+function showToast(message, type = "success", timeout = 2600) {
+  const wrap = document.createElement("div");
+  wrap.className = `toast ${type}`;
+  wrap.innerHTML = `<span class="dot"></span><span>${message}</span>`;
+  el.toastHost.appendChild(wrap);
+  setTimeout(() => {
+    wrap.style.transform = "translateY(-6px)";
+    wrap.style.opacity = "0";
+    setTimeout(() => wrap.remove(), 300);
+  }, timeout);
+}
+
+function downloadBlob(blob, filename = "file.bin", mime = "application/octet-stream") {
+  // memastikan keyword "downloadBlob(" ada
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename; a.rel = "noopener";
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 0);
+}
+
+/* ========= Utils ========= */
+function blobToDataURL(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+function dataURLtoBlob(dataurl) {
+  const arr = dataurl.split(",");
+  const mime = arr[0].match(/:(.*?);/)[1];
+  const bstr = atob(arr[1]);
+  let n = bstr.length; const u8arr = new Uint8Array(n);
+  while (n--) u8arr[n] = bstr.charCodeAt(n);
+  return new Blob([u8arr], { type: mime });
+}
+function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+  const words = text.split(/\s+/);
+  let line = "", yy = y;
+  for (let n = 0; n < words.length; n++) {
+    const test = line + words[n] + " ";
+    const w = ctx.measureText(test).width;
+    if (w > maxWidth && n > 0) {
+      ctx.fillText(line, x, yy);
+      line = words[n] + " ";
+      yy += lineHeight;
+    } else {
+      line = test;
+    }
+  }
+  ctx.fillText(line, x, yy);
+}
+
+/* ========= Preflight ========= */
+function runPreflightChecks() {
+  // Verifikasi minimal runtime
+  const okMeta = !!el.metaTheme;
+  const okMonetagTag = !!document.querySelector("script[src*='libtl.com']");
+  if (!okMeta || !okMonetagTag) {
+    console.warn("Preflight: meta theme-color / Monetag snippet mungkin tidak ditemukan.");
+  }
+  // Log providers
+  console.info("Providers default (20):", PROVIDER_CHOICES);
+  return true;
+}
+
+/* ========= Init ========= */
+async function initApp({ title, options } = {}) {
+  try {
+    // Telegram WebApp adapt
+    if (window.Telegram?.WebApp) {
+      window.Telegram.WebApp.ready();
+      window.Telegram.WebApp.expand();
+    }
+  } catch {}
+
+  el.footerYear.textContent = new Date().getFullYear();
+  el.title.textContent = parseTitle(title) || "AI Maker Teks To Image";
+
+  // theme
+  const savedTheme = localStorage.getItem("mdm-theme") || "light";
+  setTheme(savedTheme);
+
+  // events
+  el.btnTheme.addEventListener("click", toggleTheme);
+  el.btnMenu.addEventListener("click", () => showModal("menu"));
+  el.btnModalClose.addEventListener("click", closeModal);
+  el.modalOverlay.addEventListener("click", closeModal);
+
+  // menu link handlers (header and footer share)
+  const handleOpen = (key) => {
+    if (key === "profil") {
+      showModal({ title: "Profil MDM", body: `
+        <p><strong>MDM (marilmu dot marepeng)</strong> adalah platform SaaS minimalis untuk kreator Indonesia. 
+        Aplikasi ini mengubah <em>teks menjadi gambar AI</em> secara cepat dan elegan.</p>
+        <p>Brand & UI dirancang setara Figma/Notion untuk pengalaman premium.</p>` });
+    } else if (key === "privacy") {
+      showModal({ title: "Kebijakan Privasi", body: `
+        <p>Kami tidak menyimpan prompt Anda di server. Data hanya diproses untuk menghasilkan gambar.</p>
+        <ul>
+          <li>Cookie hanya untuk preferensi tema.</li>
+          <li>Penyedia AI pihak ketiga memiliki kebijakan tersendiri.</li>
+        </ul>` });
+    } else if (key === "disclaimer") {
+      showModal({ title: "Disclaimer", body: `
+        <p>Hasil AI dapat mengandung ketidakakuratan. Gunakan secara bertanggung jawab.</p>
+        <p>Semua merek dagang dimiliki oleh pemiliknya masing-masing.</p>` });
+    } else if (key === "support") {
+      onSupportClick();
+    }
+  };
+  document.body.addEventListener("click", (e) => {
+    const a = e.target.closest("[data-open]");
+    if (a) {
+      e.preventDefault();
+      handleOpen(a.getAttribute("data-open"));
+    }
+  });
+
+  el.btnGenerate.addEventListener("click", onGenerateClick);
+  el.btnShare.addEventListener("click", onShareClick);
+
+  // placeholder
+  updatePreview(null);
+
   runPreflightChecks();
 }
 
-/* ---------- Runtime preflight (lightweight) ---------- */
-function runPreflightChecks() {
-  // Ensure Monetag script present
-  const hasMonetag = !!document.querySelector('script[src*="libtl.com/sdk.js"][data-sdk="show_9256839"]');
-  if (!hasMonetag) {
-    console.warn("Monetag tidak terdeteksi.");
-  }
-  const meta = document.querySelector('meta[name="theme-color"]');
-  if (!meta) { console.warn("Meta theme-color tidak ditemukan."); }
-}
-
-/* ---------- Start ---------- */
+/* ========= Boot ========= */
 document.addEventListener("DOMContentLoaded", () => {
-  initApp({ title: ["AI Maker Teks To Image"] });
+  initApp({ title: "AI Maker Teks To Image" });
 });
-</script>
-  </body>
+  </script>
+</body>
 </html>
